@@ -1,12 +1,32 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/network/api_config.dart';
 import '../../../core/state/app_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
+import '../data/account_repository.dart';
 
-class ConnectedAccountScreen extends StatelessWidget {
+class ConnectedAccountScreen extends StatefulWidget {
   const ConnectedAccountScreen({super.key, this.embedded = false});
   final bool embedded;
+
+  @override
+  State<ConnectedAccountScreen> createState() => _ConnectedAccountScreenState();
+}
+
+class _ConnectedAccountScreenState extends State<ConnectedAccountScreen> {
+  Future<UserProfileData>? _profileFuture;
+
+  Future<UserProfileData> _loadProfile() {
+    final app = AppScope.of(context);
+    return AccountRepository(app.client).fetchProfile();
+  }
+
+  Future<void> _openProfile() async {
+    await Navigator.pushNamed(context, '/edit-profile');
+    if (!mounted) return;
+    setState(() => _profileFuture = _loadProfile());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +66,7 @@ class ConnectedAccountScreen extends StatelessWidget {
       );
     }
 
-    final role = session.roles.isEmpty ? 'عميل' : session.roles.join('، ');
+    _profileFuture ??= _loadProfile();
     return Scaffold(
       appBar: MazraaAppBar(
         actions: [
@@ -64,103 +84,78 @@ class ConnectedAccountScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AppSurfaceCard(
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 36,
-                    backgroundColor: AppColors.forestSoft,
-                    child: Icon(
-                      Icons.person_rounded,
-                      size: 42,
-                      color: AppColors.forest,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          session.email,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        if (session.userId != null)
-                          Text(
-                            'رقم المستخدم: ${session.userId}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.muted,
+            FutureBuilder<UserProfileData>(
+              future: _profileFuture,
+              builder: (context, snapshot) {
+                final profile = snapshot.data;
+                final roles = profile?.roles.isNotEmpty == true
+                    ? profile!.roles.join('، ')
+                    : (session.roles.isEmpty ? 'عميل' : session.roles.join('، '));
+                return AppSurfaceCard(
+                  child: Row(
+                    children: [
+                      _ProfileAvatar(profile: profile),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile?.displayName ?? 'جاري تحميل البيانات...',
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
-                          ),
-                        const SizedBox(height: 5),
-                        StatusPill(
-                          label: role,
-                          icon: Icons.verified_user_outlined,
+                            if ((profile?.phone ?? '').trim().isNotEmpty)
+                              Text(profile!.phone),
+                            Text(
+                              profile?.email ?? session.email,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            StatusPill(
+                              label: roles,
+                              icon: profile?.emailVerified == true ||
+                                      profile?.phoneVerified == true
+                                  ? Icons.verified_rounded
+                                  : Icons.verified_user_outlined,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _Shortcut(
-                    icon: Icons.inventory_2_outlined,
-                    label: 'طلباتي',
-                    route: '/orders',
-                  ),
-                ),
+                Expanded(child: _Shortcut(icon: Icons.inventory_2_outlined, label: 'طلباتي', route: '/orders')),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _Shortcut(
-                    icon: Icons.favorite_border_rounded,
-                    label: 'المفضلة',
-                    route: '/favorites',
-                  ),
-                ),
+                Expanded(child: _Shortcut(icon: Icons.favorite_border_rounded, label: 'المفضلة', route: '/favorites')),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _Shortcut(
-                    icon: Icons.location_on_outlined,
-                    label: 'العناوين',
-                    route: '/addresses',
-                  ),
-                ),
+                Expanded(child: _Shortcut(icon: Icons.location_on_outlined, label: 'العناوين', route: '/addresses')),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
-                  child: _Shortcut(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'المحفظة',
-                    route: '/wallet',
-                  ),
-                ),
+                Expanded(child: _Shortcut(icon: Icons.account_balance_wallet_outlined, label: 'المحفظة', route: '/wallet')),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _Shortcut(
-                    icon: Icons.credit_card_rounded,
-                    label: 'طرق الدفع',
-                    route: '/payment-methods',
-                  ),
-                ),
+                Expanded(child: _Shortcut(icon: Icons.credit_card_rounded, label: 'طرق الدفع', route: '/payment-methods')),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: _Shortcut(
-                    icon: Icons.gavel_rounded,
-                    label: 'مزاداتي',
-                    route: '/my-auctions',
-                  ),
-                ),
+                Expanded(child: _Shortcut(icon: Icons.gavel_rounded, label: 'مزاداتي', route: '/my-auctions')),
               ],
             ),
             const SizedBox(height: 14),
+            SettingsTile(
+              icon: Icons.edit_outlined,
+              title: 'تعديل البيانات',
+              onTap: _openProfile,
+            ),
+            const SizedBox(height: 8),
             SettingsTile(
               icon: Icons.settings_outlined,
               title: 'الإعدادات',
@@ -195,12 +190,40 @@ class ConnectedAccountScreen extends StatelessWidget {
   }
 }
 
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.profile});
+  final UserProfileData? profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = ApiConfig.resolveMediaUrl(profile?.profileImageUrl);
+    if (image.isNotEmpty) {
+      return ClipOval(
+        child: Image.asset(
+          image,
+          width: 72,
+          height: 72,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => const _FallbackAvatar(),
+        ),
+      );
+    }
+    return const _FallbackAvatar();
+  }
+}
+
+class _FallbackAvatar extends StatelessWidget {
+  const _FallbackAvatar();
+  @override
+  Widget build(BuildContext context) => const CircleAvatar(
+        radius: 36,
+        backgroundColor: AppColors.forestSoft,
+        child: Icon(Icons.person_rounded, size: 42, color: AppColors.forest),
+      );
+}
+
 class _Shortcut extends StatelessWidget {
-  const _Shortcut({
-    required this.icon,
-    required this.label,
-    required this.route,
-  });
+  const _Shortcut({required this.icon, required this.label, required this.route});
   final IconData icon;
   final String label;
   final String route;
@@ -215,19 +238,9 @@ class _Shortcut extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
             child: Column(
               children: [
-                Icon(
-                  icon,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 28,
-                ),
+                Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
                 const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
