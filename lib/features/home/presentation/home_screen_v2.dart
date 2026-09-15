@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/state/app_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
-import '../../marketplace/presentation/marketplace_screens.dart';
+import '../../marketplace/presentation/connected_marketplace_screens.dart';
 import '../../auctions/presentation/connected_auction_screens.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -88,7 +88,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ProductListScreen(),
+                      builder: (_) => const ConnectedProductListScreen(),
                     ),
                   ),
                 ),
@@ -99,7 +99,9 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const ProductListScreen(title: 'حيوانات'),
+                      builder: (_) => const ConnectedProductListScreen(
+                        title: 'حيوانات',
+                      ),
                     ),
                   ),
                 ),
@@ -150,7 +152,15 @@ class HomeScreen extends StatelessWidget {
             if (bestDiscount != null) ...[
               const SizedBox(height: 10),
               InkWell(
-                onTap: () => Navigator.pushNamed(context, '/offers'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ConnectedProductListScreen(
+                      title: 'العروض',
+                      onlyOffers: true,
+                    ),
+                  ),
+                ),
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
                   height: 74,
@@ -206,7 +216,15 @@ class HomeScreen extends StatelessWidget {
             SectionHeader(
               title: 'العروض المميزة',
               icon: Icons.sell_outlined,
-              onAll: () => Navigator.pushNamed(context, '/offers'),
+              onAll: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ConnectedProductListScreen(
+                    title: 'العروض',
+                    onlyOffers: true,
+                  ),
+                ),
+              ),
             ),
             SizedBox(
               height: 188,
@@ -231,7 +249,9 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.trending_up_rounded,
               onAll: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const ConnectedProductListScreen(),
+                ),
               ),
             ),
             SizedBox(
@@ -257,7 +277,9 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.grid_view_rounded,
               onAll: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const ConnectedProductListScreen(),
+                ),
               ),
             ),
             if (products.isEmpty)
@@ -289,7 +311,9 @@ class HomeScreen extends StatelessWidget {
 
   void _openProduct(BuildContext context, product) => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)),
+        MaterialPageRoute(
+          builder: (_) => ConnectedProductDetailsScreen(product: product),
+        ),
       );
 }
 
