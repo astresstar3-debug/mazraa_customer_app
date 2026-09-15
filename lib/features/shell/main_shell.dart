@@ -5,7 +5,7 @@ import '../account/presentation/connected_account_screen.dart';
 import '../auctions/presentation/connected_auction_screens.dart';
 import '../cart/presentation/connected_cart_screens.dart';
 import '../home/presentation/home_screen_v2.dart';
-import '../marketplace/presentation/marketplace_screens.dart';
+import '../marketplace/presentation/connected_marketplace_screens.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialIndex = 0});
@@ -18,7 +18,7 @@ class _MainShellState extends State<MainShell> {
   late int index = widget.initialIndex;
   late final pages = const [
     HomeScreen(),
-    CategoriesScreen(),
+    ConnectedCategoriesScreen(),
     ConnectedAuctionListScreen(embedded: true),
     ConnectedCartScreen(embedded: true),
     ConnectedAccountScreen(embedded: true),
