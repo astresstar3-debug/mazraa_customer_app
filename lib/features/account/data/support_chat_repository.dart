@@ -25,22 +25,10 @@ class SupportChatRepository {
   final ApiClient client;
 
   Future<int> ensureSupportChat() async {
-    final existing = await client.get('/api/chats/support');
-    if (existing is List) {
-      for (final row in existing) {
-        final map = jsonMap(row);
-        final closed = _bool(jsonValue(map, 'isClosed'));
-        final id = _int(jsonValue(map, 'id'));
-        if (!closed && id > 0) return id;
-      }
-    }
-    final created = jsonMap(await client.post('/api/chats', body: {
-      'recipientId': null,
-      'isSupport': true,
-    }));
-    final id = _int(jsonValue(created, 'id'));
+    final response = jsonMap(await client.post('/api/support/live-chat'));
+    final id = _int(jsonValue(response, 'chatId'));
     if (id <= 0) {
-      throw const ApiException('تعذر إنشاء محادثة الدعم.');
+      throw const ApiException('تعذر فتح محادثة الدعم.');
     }
     return id;
   }
