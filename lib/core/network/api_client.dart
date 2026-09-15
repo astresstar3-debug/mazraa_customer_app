@@ -36,8 +36,11 @@ class ApiClient {
     Map<String, dynamic>? query,
   }) => _send('PUT', path, body: body, query: query);
 
-  Future<dynamic> delete(String path, {Map<String, dynamic>? query}) =>
-      _send('DELETE', path, query: query);
+  Future<dynamic> delete(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? query,
+  }) => _send('DELETE', path, body: body, query: query);
 
   Future<dynamic> _send(
     String method,
