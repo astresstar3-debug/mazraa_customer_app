@@ -7,9 +7,10 @@ class MarketplaceRepository {
 
   final ApiClient client;
   final List<String> _categories = <String>[];
+  final List<AppOrder> _orders = <AppOrder>[];
 
   List<String> get categories => List.unmodifiable(_categories);
-  List<AppOrder> get orders => const <AppOrder>[];
+  List<AppOrder> get orders => List.unmodifiable(_orders);
 
   Future<List<Product>> fetchProducts({
     String? query,
@@ -92,7 +93,7 @@ class MarketplaceRepository {
         name: _asString(jsonValue(card, 'name')) ??
             _asString(jsonValue(detail, 'name')) ??
             '',
-        image: allImages.isEmpty ? '' : allImages.first,
+        image: allImages.isEmpty ? 'assets/logos/app_logo_crop.png' : allImages.first,
         images: allImages,
         price: price,
         oldPrice: oldPrice,
@@ -147,7 +148,9 @@ class MarketplaceRepository {
         id: '${_asInt(jsonValue(map, 'id')) ?? 0}',
         title: _asString(jsonValue(map, 'title')) ?? '',
         description: _asString(jsonValue(map, 'description')) ?? '',
-        image: ApiConfig.resolveMediaUrl(_asString(jsonValue(map, 'image'))),
+        image: ApiConfig.resolveMediaUrl(_asString(jsonValue(map, 'image'))).isEmpty
+            ? 'assets/logos/app_logo_crop.png'
+            : ApiConfig.resolveMediaUrl(_asString(jsonValue(map, 'image'))),
         currentBid: _asDouble(jsonValue(map, 'currentPrice')) ?? 0,
         remaining: remaining,
         category: '',
@@ -176,7 +179,7 @@ class MarketplaceRepository {
             name: _asString(jsonValue(map, 'productName')) ??
                 _asString(jsonValue(map, 'variantName')) ??
                 '',
-            image: image,
+            image: image.isEmpty ? 'assets/logos/app_logo_crop.png' : image,
             images: image.isEmpty ? const [] : [image],
             price: _asDouble(jsonValue(map, 'price')) ?? 0,
             category: '',
@@ -206,6 +209,98 @@ class MarketplaceRepository {
 
   Future<void> removeCartItem(int cartItemId) async {
     await client.delete('/api/Carts/item/$cartItemId');
+  }
+
+  Future<Map<String, int>> fetchWishlist() async {
+    final response = await client.get('/api/Wishlists');
+    final result = <String, int>{};
+    for (final row in _asList(response)) {
+      final map = jsonMap(row);
+      final productId = _asInt(jsonValue(map, 'productId'));
+      final wishlistId = _asInt(jsonValue(map, 'id'));
+      if (productId != null && wishlistId != null) {
+        result['$productId'] = wishlistId;
+      }
+    }
+    return result;
+  }
+
+  Future<int?> addWishlist(Product product) async {
+    final variantId = product.variantId;
+    if (variantId == null) {
+      throw const ApiException('لا يوجد عنصر متاح لإضافته إلى المفضلة.');
+    }
+    final response = jsonMap(await client.post('/api/Wishlists', body: {
+      'productVariantId': variantId,
+    }));
+    return _asInt(jsonValue(response, 'id'));
+  }
+
+  Future<void> removeWishlist(int wishlistId) async {
+    await client.delete('/api/Wishlists/$wishlistId');
+  }
+
+  Future<List<AppOrder>> fetchOrders(List<Product> knownProducts) async {
+    final response = jsonMap(await client.get('/api/Orders', query: {
+      'page': 1,
+      'pageSize': 100,
+    }));
+    final rows = _asList(jsonValue(response, 'data'));
+    final result = rows.map((row) {
+      final map = jsonMap(row);
+      final orderProducts = <Product>[];
+      for (final itemRow in _asList(jsonValue(map, 'items'))) {
+        final item = jsonMap(itemRow);
+        final variantId = _asInt(jsonValue(item, 'itemId'));
+        final known = knownProducts.cast<Product?>().firstWhere(
+              (p) => p?.variantId == variantId,
+              orElse: () => null,
+            );
+        orderProducts.add(
+          known ??
+              Product(
+                id: 'variant-${variantId ?? 0}',
+                variantId: variantId,
+                name: _asString(jsonValue(item, 'productName')) ?? '',
+                image: 'assets/logos/app_logo_crop.png',
+                price: _asDouble(jsonValue(item, 'price')) ?? 0,
+                category: '',
+              ),
+        );
+      }
+      return AppOrder(
+        id: '${_asInt(jsonValue(map, 'id')) ?? 0}',
+        status: _orderStatus(_asString(jsonValue(map, 'status')) ?? ''),
+        total: _asDouble(jsonValue(map, 'totalPrice')) ?? 0,
+        products: orderProducts,
+        date: DateTime.tryParse(_asString(jsonValue(map, 'createdAt')) ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0),
+      );
+    }).where((order) => order.id != '0').toList();
+
+    _orders
+      ..clear()
+      ..addAll(result);
+    return List.unmodifiable(_orders);
+  }
+
+  static String _orderStatus(String raw) {
+    switch (raw.toLowerCase()) {
+      case 'completed':
+      case 'delivered':
+        return 'مكتمل';
+      case 'shipped':
+      case 'outfordelivery':
+      case 'out_for_delivery':
+        return 'قيد التوصيل';
+      case 'cancelled':
+      case 'canceled':
+        return 'ملغي';
+      case 'pending':
+      case 'processing':
+      default:
+        return raw.isEmpty ? 'قيد التجهيز' : 'قيد التجهيز';
+    }
   }
 
   static List<dynamic> _asList(dynamic value) => value is List ? value : const [];
