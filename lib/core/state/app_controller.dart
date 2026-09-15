@@ -16,6 +16,7 @@ class AppController extends ChangeNotifier {
   late final AuthRepository authRepository;
 
   final Set<String> favorites = <String>{};
+  final Map<String, int> _wishlistIds = <String, int>{};
   final List<Product> _products = <Product>[];
   final List<Auction> _auctions = <Auction>[];
   final List<String> _categories = <String>[];
@@ -31,6 +32,7 @@ class AppController extends ChangeNotifier {
   List<Auction> get auctions => List.unmodifiable(_auctions);
   List<String> get categories => List.unmodifiable(_categories);
   List<CartLine> get cart => List.unmodifiable(_cart);
+  List<AppOrder> get orders => repository.orders;
   bool get isAuthenticated => session != null && client.accessToken != null;
 
   int get cartCount => _cart.fold(0, (sum, line) => sum + line.quantity);
@@ -100,11 +102,54 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshWishlist() async {
+    if (!isAuthenticated) {
+      favorites.clear();
+      _wishlistIds.clear();
+      notifyListeners();
+      return;
+    }
+    try {
+      final data = await repository.fetchWishlist();
+      _wishlistIds
+        ..clear()
+        ..addAll(data);
+      favorites
+        ..clear()
+        ..addAll(data.keys);
+      notifyListeners();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> refreshOrders() async {
+    if (!isAuthenticated) {
+      repository.clearUserData();
+      notifyListeners();
+      return;
+    }
+    try {
+      await repository.fetchOrders(_products);
+      notifyListeners();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   Future<void> login(String email, String password) async {
     errorMessage = null;
     try {
       session = await authRepository.login(email: email, password: password);
-      await refreshCart();
+      await Future.wait<void>([
+        refreshCart(),
+        refreshWishlist(),
+        refreshOrders(),
+      ]);
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
@@ -125,7 +170,11 @@ class AppController extends ChangeNotifier {
         email: email,
         password: password,
       );
-      await refreshCart();
+      await Future.wait<void>([
+        refreshCart(),
+        refreshWishlist(),
+        refreshOrders(),
+      ]);
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
@@ -141,15 +190,49 @@ class AppController extends ChangeNotifier {
       session = null;
       _cart.clear();
       favorites.clear();
+      _wishlistIds.clear();
+      repository.clearUserData();
       notifyListeners();
     }
   }
 
   bool isFavorite(String id) => favorites.contains(id);
 
-  void toggleFavorite(String id) {
-    favorites.contains(id) ? favorites.remove(id) : favorites.add(id);
-    notifyListeners();
+  Future<void> toggleFavorite(String id) async {
+    if (!isAuthenticated) {
+      errorMessage = 'يرجى تسجيل الدخول أولًا لاستخدام المفضلة.';
+      notifyListeners();
+      return;
+    }
+
+    Product? product;
+    for (final item in _products) {
+      if (item.id == id) {
+        product = item;
+        break;
+      }
+    }
+    if (product == null) return;
+
+    try {
+      if (favorites.contains(id)) {
+        final wishlistId = _wishlistIds[id];
+        if (wishlistId != null) {
+          await repository.removeWishlist(wishlistId);
+        }
+        favorites.remove(id);
+        _wishlistIds.remove(id);
+      } else {
+        final wishlistId = await repository.addWishlist(product);
+        favorites.add(id);
+        if (wishlistId != null) _wishlistIds[id] = wishlistId;
+      }
+      errorMessage = null;
+    } on Object catch (error) {
+      errorMessage = _message(error);
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<void> addToCart(Product product, {int quantity = 1}) async {
@@ -182,7 +265,6 @@ class AppController extends ChangeNotifier {
     } on Object catch (error) {
       errorMessage = _message(error);
       notifyListeners();
-      rethrow;
     }
   }
 
