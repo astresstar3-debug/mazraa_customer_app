@@ -4,7 +4,7 @@ import '../../../core/state/app_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
 import '../../marketplace/presentation/marketplace_screens.dart';
-import '../../auctions/presentation/auction_screens.dart';
+import '../../auctions/presentation/connected_auction_screens.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -16,6 +16,9 @@ class HomeScreen extends StatelessWidget {
     final auctions = app.auctions;
     final featuredCount = products.length < 4 ? products.length : 4;
     final gridCount = products.length < 6 ? products.length : 6;
+    final discounted = products.where((p) => p.discount != null).toList();
+    discounted.sort((a, b) => (b.discount ?? 0).compareTo(a.discount ?? 0));
+    final bestDiscount = discounted.isEmpty ? null : discounted.first.discount;
 
     return Scaffold(
       appBar: MazraaAppBar(
@@ -28,11 +31,13 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ],
-        leading: TextButton.icon(
-          onPressed: () => Navigator.pushNamed(context, '/location'),
-          icon: const Icon(Icons.location_on_rounded, size: 17),
-          label: Text(app.location, style: const TextStyle(fontSize: 11)),
-        ),
+        leading: app.location.isEmpty
+            ? null
+            : TextButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/location'),
+                icon: const Icon(Icons.location_on_rounded, size: 17),
+                label: Text(app.location, style: const TextStyle(fontSize: 11)),
+              ),
       ),
       body: AppPage(
         child: Column(
@@ -72,7 +77,7 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const AuctionListScreen(),
+                      builder: (_) => const ConnectedAuctionListScreen(),
                     ),
                   ),
                 ),
@@ -112,7 +117,9 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.gavel_rounded,
               onAll: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AuctionListScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const ConnectedAuctionListScreen(),
+                ),
               ),
             ),
             SizedBox(
@@ -131,7 +138,7 @@ class HomeScreen extends StatelessWidget {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => AuctionDetailsScreen(
+                              builder: (_) => ConnectedAuctionDetailsScreen(
                                 auction: auctions[index],
                               ),
                             ),
@@ -140,59 +147,61 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
             ),
-            const SizedBox(height: 10),
-            InkWell(
-              onTap: () => Navigator.pushNamed(context, '/coupon'),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                height: 74,
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppColors.forestDark,
-                      AppColors.forest,
-                      AppColors.terracotta,
+            if (bestDiscount != null) ...[
+              const SizedBox(height: 10),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/offers'),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 74,
+                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        AppColors.forestDark,
+                        AppColors.forest,
+                        AppColors.terracotta,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.local_offer_rounded,
+                        color: Colors.white,
+                        size: 34,
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'عروض المنتجات',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              'استعرض المنتجات المخفضة المتاحة الآن',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      StatusPill(label: 'حتى $bestDiscount%', color: Colors.white),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.local_offer_rounded,
-                      color: Colors.white,
-                      size: 34,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'كوبون خصم خاص لك',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            'احصل على خصم 10% على جميع المنتجات',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    StatusPill(label: 'HA10', color: Colors.white),
-                  ],
                 ),
               ),
-            ),
+            ],
             const SizedBox(height: 10),
             SectionHeader(
               title: 'العروض المميزة',
@@ -279,9 +288,9 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _openProduct(BuildContext context, product) => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)),
-  );
+        context,
+        MaterialPageRoute(builder: (_) => ProductDetailsScreen(product: product)),
+      );
 }
 
 class _QuickCategory extends StatelessWidget {
@@ -297,34 +306,34 @@ class _QuickCategory extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Padding(
-      padding: const EdgeInsetsDirectional.symmetric(horizontal: 3),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: 58,
-          decoration: BoxDecoration(
-            color: color,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 3),
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: 23),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
+            child: Container(
+              height: 58,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: Colors.white, size: 23),
+                  const SizedBox(height: 3),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
 }
