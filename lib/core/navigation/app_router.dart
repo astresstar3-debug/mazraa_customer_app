@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../features/account/presentation/account_screens.dart';
+import '../../features/account/presentation/connected_account_data_screens.dart';
 import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/misc_screens.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
@@ -29,14 +30,8 @@ abstract final class AppRouter {
       '/categories' => const ConnectedCategoriesScreen(),
       '/search' => const ConnectedSearchScreen(),
       '/products' => const ConnectedProductListScreen(),
-      '/offers' => const ConnectedProductListScreen(
-        title: 'العروض',
-        onlyOffers: true,
-      ),
-      '/coupon' => const ConnectedProductListScreen(
-        title: 'العروض',
-        onlyOffers: true,
-      ),
+      '/offers' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
+      '/coupon' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
       '/product-details' => const _FirstProductScreen(),
       '/product-medicine' => const _FirstProductScreen(index: 7),
       '/product-feed' => const _FirstProductScreen(index: 3),
@@ -60,9 +55,9 @@ abstract final class AppRouter {
       '/checkout' => const ConnectedCheckoutScreen(),
       '/delivery-slot' => const DeliverySlotScreen(),
       '/delivery-preferences' => const DeliveryPreferencesScreen(),
-      '/payment-methods' => const PaymentMethodsScreen(),
-      '/add-card' => const AddCardScreen(),
-      '/edit-payment' => const PaymentMethodsScreen(),
+      '/payment-methods' => const ConnectedPaymentMethodsScreen(),
+      '/add-card' => const ConnectedPaymentMethodsScreen(),
+      '/edit-payment' => const ConnectedPaymentMethodsScreen(),
       '/cash-on-delivery' => const CashOnDeliveryScreen(),
       '/bank-transfer' => const BankTransferScreen(),
       '/order-success' => const OrderSuccessScreen(),
@@ -70,69 +65,26 @@ abstract final class AppRouter {
       '/payment-failed' => const PaymentResultScreen(success: false),
       '/wallet-pending' => const WalletPendingScreen(),
       '/account' => const ConnectedAccountScreen(),
-      '/edit-profile' => const SimpleFormScreen(
-        title: 'تعديل البيانات',
-        icon: Icons.person_rounded,
-        fields: [
-          FormFieldSpec('الاسم الكامل', Icons.person_outline_rounded),
-          FormFieldSpec('رقم الجوال', Icons.phone_outlined, phone: true),
-          FormFieldSpec('البريد الإلكتروني', Icons.email_outlined),
-          FormFieldSpec('المدينة', Icons.location_on_outlined),
-        ],
-      ),
-      '/change-phone' => const SimpleFormScreen(
-        title: 'تغيير رقم الهاتف',
-        icon: Icons.phonelink_lock_rounded,
-        button: 'إرسال رمز التحقق',
-        fields: [
-          FormFieldSpec(
-            'رقم الجوال الحالي',
-            Icons.phone_android_rounded,
-            phone: true,
-          ),
-          FormFieldSpec('رقم الجوال الجديد', Icons.phone_outlined, phone: true),
-        ],
-      ),
-      '/change-password' => const SimpleFormScreen(
-        title: 'تغيير كلمة المرور',
-        icon: Icons.lock_rounded,
-        button: 'تحديث كلمة المرور',
-        fields: [
-          FormFieldSpec(
-            'كلمة المرور الحالية',
-            Icons.lock_outline_rounded,
-            secure: true,
-          ),
-          FormFieldSpec(
-            'كلمة المرور الجديدة',
-            Icons.lock_reset_rounded,
-            secure: true,
-          ),
-          FormFieldSpec(
-            'تأكيد كلمة المرور',
-            Icons.verified_user_outlined,
-            secure: true,
-          ),
-        ],
-      ),
-      '/settings' => const SettingsScreen(),
-      '/notifications' => const NotificationsScreen(),
-      '/notification-preferences' => const NotificationPreferencesScreen(),
-      '/addresses' => const AddressesScreen(),
-      '/addresses-empty' => const AddressesScreen(empty: true),
+      '/edit-profile' => const ConnectedEditProfileScreen(),
+      '/change-phone' => const ConnectedEditProfileScreen(),
+      '/change-password' => const ConnectedChangePasswordScreen(),
+      '/settings' => const ConnectedSettingsScreen(),
+      '/notifications' => const ConnectedNotificationsScreen(),
+      '/notification-preferences' => const ConnectedNotificationPreferencesScreen(),
+      '/addresses' => const ConnectedAddressesScreen(),
+      '/addresses-empty' => const ConnectedAddressesScreen(),
       '/add-address' => const ConnectedAddressFormScreen(),
-      '/wallet' => const WalletScreen(),
-      '/wallet-topup' => const WalletTopUpScreen(),
-      '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
-      '/wallet-transactions' => const WalletTransactionsScreen(),
+      '/wallet' => const ConnectedWalletScreen(),
+      '/wallet-topup' => const ConnectedWalletTopUpScreen(),
+      '/wallet-topup-success' => const ConnectedWalletScreen(),
+      '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
       '/orders' => const OrdersScreen(),
       '/order-details' => const OrderDetailsScreen(),
       '/track-order' => const TrackOrderScreen(),
       '/cancel-order' => const CancelOrderScreen(),
       '/order-cancelled' => const GenericActionResultScreen(
         title: 'تم إلغاء الطلب بنجاح',
-        message:
-            'تم إلغاء طلبك وسيتم استرداد المبلغ إلى محفظتك خلال الفترة المحددة.',
+        message: 'تم إلغاء طلبك وسيتم تحديث حالة الاسترداد من الخادم.',
       ),
       '/rate-order' => const RateOrderScreen(),
       '/returns' => const ReturnsScreen(),
@@ -152,11 +104,7 @@ abstract final class AppRouter {
           FormFieldSpec('نوع المشكلة', Icons.category_outlined),
           FormFieldSpec('رقم الطلب (اختياري)', Icons.receipt_outlined),
           FormFieldSpec('عنوان المشكلة', Icons.edit_outlined),
-          FormFieldSpec(
-            'اشرح المشكلة بالتفصيل',
-            Icons.chat_bubble_outline_rounded,
-            multiline: true,
-          ),
+          FormFieldSpec('اشرح المشكلة بالتفصيل', Icons.chat_bubble_outline_rounded, multiline: true),
         ],
       ),
       '/support-chat' => const SupportChatScreen(),
@@ -189,9 +137,7 @@ class _FirstProductScreen extends StatelessWidget {
         ),
       );
     }
-    final safeIndex = index < 0
-        ? 0
-        : (index >= products.length ? products.length - 1 : index);
+    final safeIndex = index < 0 ? 0 : (index >= products.length ? products.length - 1 : index);
     return ConnectedProductDetailsScreen(product: products[safeIndex]);
   }
 }
@@ -250,9 +196,7 @@ class _FirstAuctionScreen extends StatelessWidget {
         ),
       );
     }
-    final safeIndex = index < 0
-        ? 0
-        : (index >= auctions.length ? auctions.length - 1 : index);
+    final safeIndex = index < 0 ? 0 : (index >= auctions.length ? auctions.length - 1 : index);
     return ConnectedAuctionDetailsScreen(auction: auctions[safeIndex]);
   }
 }
