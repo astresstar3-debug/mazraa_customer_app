@@ -4,14 +4,19 @@ import '../../features/account/presentation/account_screens.dart';
 import '../../features/account/presentation/connected_account_data_screens.dart';
 import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/connected_customer_service_screens.dart';
+import '../../features/account/presentation/connected_delete_account_screen.dart';
+import '../../features/account/presentation/connected_support_chat_screen.dart';
 import '../../features/account/presentation/misc_screens.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auctions/presentation/connected_auction_screens.dart';
+import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
+import '../../features/auth/presentation/connected_recovery_screens.dart';
 import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
+import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
 import '../../features/marketplace/presentation/marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
@@ -24,8 +29,9 @@ abstract final class AppRouter {
       '/onboarding' => const OnboardingScreen(),
       '/login' => const ConnectedLoginScreen(),
       '/register' => const ConnectedRegisterScreen(),
-      '/forgot-password' => const ForgotPasswordScreen(),
-      '/otp' => const OtpScreen(),
+      '/forgot-password' => const ConnectedForgotPasswordScreen(),
+      '/reset-password' => const ConnectedResetPasswordScreen(),
+      '/otp' => const ConnectedResetPasswordScreen(),
       '/location-permission' => const LocationPermissionScreen(),
       '/location' => const LocationScreen(),
       '/categories' => const ConnectedCategoriesScreen(),
@@ -45,10 +51,10 @@ abstract final class AppRouter {
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
       '/auction-bid' => const _BidRoute(),
       '/auction-success' => const _FirstAuctionScreen(),
-      '/auction-won' => const _FirstAuctionScreen(),
-      '/auction-ended' => const _FirstAuctionScreen(),
-      '/my-auctions' => const MyAuctionsScreen(),
-      '/bid-history' => const MyAuctionsScreen(history: true),
+      '/auction-won' => const ConnectedMyAuctionsScreen(),
+      '/auction-ended' => const ConnectedMyAuctionsScreen(),
+      '/my-auctions' => const ConnectedMyAuctionsScreen(),
+      '/bid-history' => const ConnectedMyAuctionsScreen(historyOnly: true),
       '/auction-reminder' => const _ReminderRoute(),
       '/guarantee-details' => const GuaranteeDetailsScreen(),
       '/cart' => const ConnectedCartScreen(),
@@ -61,10 +67,10 @@ abstract final class AppRouter {
       '/edit-payment' => const ConnectedPaymentMethodsScreen(),
       '/cash-on-delivery' => const CashOnDeliveryScreen(),
       '/bank-transfer' => const BankTransferScreen(),
-      '/order-success' => const OrderSuccessScreen(),
-      '/payment-success' => const PaymentResultScreen(),
-      '/payment-failed' => const PaymentResultScreen(success: false),
-      '/wallet-pending' => const WalletPendingScreen(),
+      '/order-success' => const ConnectedOrdersScreen(),
+      '/payment-success' => const ConnectedOrdersScreen(),
+      '/payment-failed' => const ConnectedCheckoutScreen(),
+      '/wallet-pending' => const ConnectedWalletScreen(),
       '/account' => const ConnectedAccountScreen(),
       '/edit-profile' => const ConnectedEditProfileScreen(),
       '/change-phone' => const ConnectedEditProfileScreen(),
@@ -92,9 +98,9 @@ abstract final class AppRouter {
       '/invoice' => const _FirstOrderActionRoute(action: _OrderAction.details),
       '/support' => const ConnectedSupportScreen(),
       '/support-ticket' => const ConnectedSupportTicketScreen(),
-      '/support-chat' => const ConnectedSupportScreen(),
+      '/support-chat' => const ConnectedSupportChatScreen(),
       '/legal' => const LegalScreen(),
-      '/delete-account' => const DeleteAccountScreen(),
+      '/delete-account' => const ConnectedDeleteAccountScreen(),
       '/offline' => const GenericActionResultScreen(
         title: 'لا يوجد اتصال بالإنترنت',
         message: 'تحقق من اتصالك وحاول مرة أخرى.',
@@ -142,7 +148,7 @@ class _ReviewRoute extends StatelessWidget {
         ),
       );
     }
-    return ReviewsScreen(product: products.first);
+    return ConnectedProductReviewsScreen(product: products.first);
   }
 }
 
@@ -156,12 +162,12 @@ class _AskRoute extends StatelessWidget {
       return const Scaffold(
         body: ResultStateView(
           title: 'لا توجد منتجات',
-          message: 'لا يوجد منتج متاح لطرح سؤال عنه.',
+          message: 'لا يوجد منتج متاح لعرض الأسئلة.',
           kind: ResultKind.empty,
         ),
       );
     }
-    return AskQuestionScreen(product: products.first);
+    return ConnectedProductQuestionsScreen(product: products.first);
   }
 }
 
