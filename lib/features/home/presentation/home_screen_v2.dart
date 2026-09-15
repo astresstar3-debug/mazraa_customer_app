@@ -14,6 +14,9 @@ class HomeScreen extends StatelessWidget {
     final app = AppScope.of(context);
     final products = app.products;
     final auctions = app.auctions;
+    final featuredCount = products.length < 4 ? products.length : 4;
+    final gridCount = products.length < 6 ? products.length : 6;
+
     return Scaffold(
       appBar: MazraaAppBar(
         actions: [
@@ -39,6 +42,26 @@ class HomeScreen extends StatelessWidget {
               readOnly: true,
               onTap: () => Navigator.pushNamed(context, '/search'),
             ),
+            if (app.isLoading) ...[
+              const SizedBox(height: 12),
+              const LinearProgressIndicator(),
+            ],
+            if (app.errorMessage != null && products.isEmpty) ...[
+              const SizedBox(height: 12),
+              AppSurfaceCard(
+                child: Column(
+                  children: [
+                    Text(app.errorMessage!, textAlign: TextAlign.center),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: app.initialize,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('إعادة المحاولة'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -94,25 +117,28 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(
               height: 190,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: auctions.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 9),
-                itemBuilder: (context, index) => SizedBox(
-                  width: 116,
-                  child: AuctionCard(
-                    auction: auctions[index],
-                    compact: true,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            AuctionDetailsScreen(auction: auctions[index]),
+              child: auctions.isEmpty
+                  ? const Center(child: Text('لا توجد مزادات متاحة حاليًا'))
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: auctions.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 9),
+                      itemBuilder: (context, index) => SizedBox(
+                        width: 116,
+                        child: AuctionCard(
+                          auction: auctions[index],
+                          compact: true,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AuctionDetailsScreen(
+                                auction: auctions[index],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: 10),
             InkWell(
@@ -175,18 +201,20 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(
               height: 188,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 4,
-                separatorBuilder: (_, _) => const SizedBox(width: 9),
-                itemBuilder: (context, index) => SizedBox(
-                  width: 122,
-                  child: ProductCard(
-                    product: products[index],
-                    onTap: () => _openProduct(context, products[index]),
-                  ),
-                ),
-              ),
+              child: products.isEmpty
+                  ? const Center(child: Text('لا توجد منتجات متاحة حاليًا'))
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: featuredCount,
+                      separatorBuilder: (_, _) => const SizedBox(width: 9),
+                      itemBuilder: (context, index) => SizedBox(
+                        width: 122,
+                        child: ProductCard(
+                          product: products[index],
+                          onTap: () => _openProduct(context, products[index]),
+                        ),
+                      ),
+                    ),
             ),
             const SizedBox(height: 10),
             SectionHeader(
@@ -199,18 +227,20 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(
               height: 188,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 4,
-                separatorBuilder: (_, _) => const SizedBox(width: 9),
-                itemBuilder: (context, index) => SizedBox(
-                  width: 122,
-                  child: ProductCard(
-                    product: products[index + 3],
-                    onTap: () => _openProduct(context, products[index + 3]),
-                  ),
-                ),
-              ),
+              child: products.isEmpty
+                  ? const Center(child: Text('لا توجد منتجات متاحة حاليًا'))
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: featuredCount,
+                      separatorBuilder: (_, _) => const SizedBox(width: 9),
+                      itemBuilder: (context, index) => SizedBox(
+                        width: 122,
+                        child: ProductCard(
+                          product: products[index],
+                          onTap: () => _openProduct(context, products[index]),
+                        ),
+                      ),
+                    ),
             ),
             const SizedBox(height: 10),
             SectionHeader(
@@ -221,21 +251,27 @@ class HomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const ProductListScreen()),
               ),
             ),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: .62,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
+            if (products.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 22),
+                child: Center(child: Text('لا توجد منتجات متاحة حاليًا')),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: .62,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                ),
+                itemCount: gridCount,
+                itemBuilder: (context, index) => ProductCard(
+                  product: products[index],
+                  onTap: () => _openProduct(context, products[index]),
+                ),
               ),
-              itemCount: 6,
-              itemBuilder: (context, index) => ProductCard(
-                product: products[index],
-                onTap: () => _openProduct(context, products[index]),
-              ),
-            ),
           ],
         ),
       ),
