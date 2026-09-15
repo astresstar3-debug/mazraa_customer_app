@@ -45,6 +45,47 @@ class AuthRepository {
     return _apply(response);
   }
 
+  Future<void> forgotPassword(String email) =>
+      client.post('/api/auth/forgot-password', body: {'email': email.trim()});
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) => client.post('/api/auth/reset-password', body: {
+        'token': token.trim(),
+        'newPassword': newPassword,
+      });
+
+  Future<void> requestPhoneOtp(String phone) =>
+      client.post('/api/auth/phone', body: {'phoneNumber': phone.trim()});
+
+  Future<AuthSession> verifyPhoneOtp({
+    required String phone,
+    required String code,
+  }) async {
+    final response = jsonMap(await client.post('/api/auth/phone/verify', body: {
+      'phoneNumber': phone.trim(),
+      'code': code.trim(),
+    }));
+    return _apply(response);
+  }
+
+  Future<void> verifyGenericOtp({
+    required String key,
+    required String code,
+  }) => client.post('/api/auth/otp/verify', body: {
+        'key': key.trim(),
+        'code': code.trim(),
+      });
+
+  Future<void> verifyEmail(String token) =>
+      client.post('/api/auth/email/verify', body: {'token': token.trim()});
+
+  Future<void> resendEmailVerification(String email) => client.post(
+        '/api/auth/email/resend-verification',
+        body: {'email': email.trim()},
+      );
+
   Future<void> logout() async {
     final refresh = client.refreshToken;
     if (refresh != null && refresh.isNotEmpty) {
