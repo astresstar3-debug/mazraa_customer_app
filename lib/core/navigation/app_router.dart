@@ -7,6 +7,7 @@ import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/cart/presentation/cart_screens.dart';
+import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/marketplace/presentation/marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
@@ -48,9 +49,9 @@ abstract final class AppRouter {
       '/bid-history' => const MyAuctionsScreen(history: true),
       '/auction-reminder' => const _ReminderRoute(),
       '/guarantee-details' => const GuaranteeDetailsScreen(),
-      '/cart' => const CartScreen(),
-      '/cart-empty' => const CartScreen(forceEmpty: true),
-      '/checkout' => const CheckoutScreen(),
+      '/cart' => const ConnectedCartScreen(),
+      '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
+      '/checkout' => const ConnectedCheckoutScreen(),
       '/delivery-slot' => const DeliverySlotScreen(),
       '/delivery-preferences' => const DeliveryPreferencesScreen(),
       '/payment-methods' => const PaymentMethodsScreen(),
@@ -113,18 +114,7 @@ abstract final class AppRouter {
       '/notification-preferences' => const NotificationPreferencesScreen(),
       '/addresses' => const AddressesScreen(),
       '/addresses-empty' => const AddressesScreen(empty: true),
-      '/add-address' => const SimpleFormScreen(
-        title: 'إضافة عنوان جديد',
-        icon: Icons.add_location_alt_rounded,
-        button: 'حفظ العنوان',
-        fields: [
-          FormFieldSpec('الاسم', Icons.person_outline_rounded),
-          FormFieldSpec('رقم الهاتف', Icons.phone_outlined, phone: true),
-          FormFieldSpec('المدينة', Icons.location_city_outlined),
-          FormFieldSpec('المنطقة', Icons.map_outlined),
-          FormFieldSpec('تفاصيل العنوان', Icons.home_outlined, multiline: true),
-        ],
-      ),
+      '/add-address' => const ConnectedAddressFormScreen(),
       '/wallet' => const WalletScreen(),
       '/wallet-topup' => const WalletTopUpScreen(),
       '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
