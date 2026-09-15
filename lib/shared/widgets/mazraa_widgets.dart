@@ -9,6 +9,55 @@ import '../../features/marketplace/domain/marketplace_models.dart';
 String formatPrice(num value) =>
     '${value.toStringAsFixed(value % 1 == 0 ? 0 : 2)} ر.س';
 
+class AppDataImage extends StatelessWidget {
+  const AppDataImage(
+    this.source, {
+    super.key,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+  });
+
+  final String source;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+
+  @override
+  Widget build(BuildContext context) {
+    if (source.startsWith('http://') || source.startsWith('https://')) {
+      return Image.network(
+        source,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (_, _, _) => _placeholder(context),
+      );
+    }
+    if (source.isNotEmpty) {
+      return Image.asset(
+        source,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (_, _, _) => _placeholder(context),
+      );
+    }
+    return _placeholder(context);
+  }
+
+  Widget _placeholder(BuildContext context) => Container(
+        width: width,
+        height: height,
+        color: Theme.of(context).colorScheme.primaryContainer,
+        alignment: Alignment.center,
+        child: Icon(
+          Icons.image_outlined,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+}
+
 class AppPage extends StatelessWidget {
   const AppPage({
     super.key,
@@ -319,7 +368,7 @@ class ProductCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
+                child: AppDataImage(
                   product.image,
                   width: 100,
                   height: 92,
@@ -358,7 +407,7 @@ class ProductCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(15),
                     ),
-                    child: Image.asset(product.image, fit: BoxFit.cover),
+                    child: AppDataImage(product.image, fit: BoxFit.cover),
                   ),
                   if (product.discount != null)
                     PositionedDirectional(
@@ -396,7 +445,24 @@ class ProductCard extends StatelessWidget {
               child: SizedBox(
                 height: 36,
                 child: FilledButton.icon(
-                  onPressed: () => controller.addToCart(product),
+                  onPressed: () async {
+                    try {
+                      await controller.addToCart(product);
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      if (!controller.isAuthenticated) {
+                        Navigator.pushNamed(context, '/login');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              controller.errorMessage ?? 'تعذر إضافة المنتج للسلة',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
                   icon: const Icon(Icons.add_shopping_cart_rounded, size: 16),
                   label: const Text(
                     'أضف للسلة',
@@ -496,7 +562,7 @@ class AuctionCard extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(15),
                   ),
-                  child: Image.asset(auction.image, fit: BoxFit.cover),
+                  child: AppDataImage(auction.image, fit: BoxFit.cover),
                 ),
               ),
               PositionedDirectional(
