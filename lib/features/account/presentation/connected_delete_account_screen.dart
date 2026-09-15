@@ -44,8 +44,7 @@ class _ConnectedDeleteAccountScreenState
       await app.client.delete('/api/users/me', body: {
         'password': _password.text,
       });
-      app.client.accessToken = null;
-      app.client.refreshToken = null;
+      app.clearLocalSession();
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
       ScaffoldMessenger.of(context).showSnackBar(
