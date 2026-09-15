@@ -6,6 +6,10 @@ class MarketplaceRepository {
   MarketplaceRepository(this.client);
 
   final ApiClient client;
+  final List<String> _categories = <String>[];
+
+  List<String> get categories => List.unmodifiable(_categories);
+  List<AppOrder> get orders => const <AppOrder>[];
 
   Future<List<Product>> fetchProducts({
     String? query,
@@ -110,10 +114,14 @@ class MarketplaceRepository {
 
   Future<List<String>> fetchCategories() async {
     final response = await client.get('/api/Categories');
-    return _asList(response)
+    final result = _asList(response)
         .map((row) => _asString(jsonValue(jsonMap(row), 'name')) ?? '')
         .where((name) => name.isNotEmpty)
         .toList();
+    _categories
+      ..clear()
+      ..addAll(result);
+    return List.unmodifiable(_categories);
   }
 
   Future<List<Auction>> fetchAuctions() async {
