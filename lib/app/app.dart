@@ -15,6 +15,12 @@ class _MazraaAppState extends State<MazraaApp> {
   final controller = AppController();
 
   @override
+  void initState() {
+    super.initState();
+    controller.initialize();
+  }
+
+  @override
   void dispose() {
     controller.dispose();
     super.dispose();
