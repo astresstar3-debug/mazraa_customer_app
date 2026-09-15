@@ -7,7 +7,6 @@ import '../../features/account/presentation/connected_customer_service_screens.d
 import '../../features/account/presentation/connected_delete_account_screen.dart';
 import '../../features/account/presentation/connected_support_chat_screen.dart';
 import '../../features/account/presentation/misc_screens.dart';
-import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auctions/presentation/connected_auction_screens.dart';
 import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
@@ -54,7 +53,10 @@ abstract final class AppRouter {
       '/auction-ended' => const ConnectedMyAuctionsScreen(),
       '/my-auctions' => const ConnectedMyAuctionsScreen(),
       '/bid-history' => const ConnectedMyAuctionsScreen(historyOnly: true),
-      '/auction-reminder' => const _ReminderRoute(),
+      '/auction-reminder' => const _ServerFeatureUnavailableScreen(
+        title: 'تذكير المزاد',
+        message: 'لا يوجد في نسخة السيرفر الحالية endpoint لحفظ تذكيرات المزادات، لذلك لن يعرض التطبيق نجاحًا محليًا وهميًا.',
+      ),
       '/guarantee-details' => const _ServerFeatureUnavailableScreen(
         title: 'ضمان المزاد',
         message: 'لا يوجد في نسخة السيرفر الحالية endpoint مستقل لضمان المزاد. لن يعرض التطبيق مبلغ ضمان تجريبيًا.',
@@ -211,25 +213,6 @@ class _BidRoute extends StatelessWidget {
     }
     if (!app.isAuthenticated) return const ConnectedLoginScreen();
     return ConnectedBidScreen(auction: app.auctions.first);
-  }
-}
-
-class _ReminderRoute extends StatelessWidget {
-  const _ReminderRoute();
-
-  @override
-  Widget build(BuildContext context) {
-    final auctions = AppScope.of(context).auctions;
-    if (auctions.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد مزادات',
-          message: 'لا يوجد مزاد متاح لإضافة تذكير.',
-          kind: ResultKind.empty,
-        ),
-      );
-    }
-    return AuctionReminderScreen(auction: auctions.first);
   }
 }
 
