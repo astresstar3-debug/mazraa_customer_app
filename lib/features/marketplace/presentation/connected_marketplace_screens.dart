@@ -5,6 +5,7 @@ import '../../../core/state/app_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
 import '../domain/marketplace_models.dart';
+import 'connected_product_reviews_screen.dart';
 
 class ConnectedCategoriesScreen extends StatelessWidget {
   const ConnectedCategoriesScreen({super.key});
@@ -466,6 +467,40 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                     ? 'لا يوجد وصف إضافي لهذا المنتج.'
                     : product.description,
               ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConnectedProductReviewsScreen(
+                          product: product,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.star_outline_rounded),
+                    label: const Text('التقييمات'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConnectedProductQuestionsScreen(
+                          product: product,
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(Icons.help_outline_rounded),
+                    label: const Text('الأسئلة'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
