@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../features/account/presentation/account_screens.dart';
+import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/misc_screens.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
@@ -61,28 +62,15 @@ abstract final class AppRouter {
       '/payment-success' => const PaymentResultScreen(),
       '/payment-failed' => const PaymentResultScreen(success: false),
       '/wallet-pending' => const WalletPendingScreen(),
-      '/account' => const AccountScreen(),
+      '/account' => const ConnectedAccountScreen(),
       '/edit-profile' => const SimpleFormScreen(
         title: 'تعديل البيانات',
         icon: Icons.person_rounded,
         fields: [
-          FormFieldSpec(
-            'الاسم الكامل',
-            Icons.person_outline_rounded,
-            hint: 'محمد العتيبي',
-          ),
-          FormFieldSpec(
-            'رقم الجوال',
-            Icons.phone_outlined,
-            hint: '+966 50 123 4567',
-            phone: true,
-          ),
-          FormFieldSpec(
-            'البريد الإلكتروني',
-            Icons.email_outlined,
-            hint: 'mohammed@example.com',
-          ),
-          FormFieldSpec('المدينة', Icons.location_on_outlined, hint: 'الرياض'),
+          FormFieldSpec('الاسم الكامل', Icons.person_outline_rounded),
+          FormFieldSpec('رقم الجوال', Icons.phone_outlined, phone: true),
+          FormFieldSpec('البريد الإلكتروني', Icons.email_outlined),
+          FormFieldSpec('المدينة', Icons.location_on_outlined),
         ],
       ),
       '/change-phone' => const SimpleFormScreen(
@@ -93,7 +81,6 @@ abstract final class AppRouter {
           FormFieldSpec(
             'رقم الجوال الحالي',
             Icons.phone_android_rounded,
-            hint: '+966 50 123 4567',
             phone: true,
           ),
           FormFieldSpec('رقم الجوال الجديد', Icons.phone_outlined, phone: true),
@@ -156,7 +143,7 @@ abstract final class AppRouter {
       '/return-request' => const ReturnRequestScreen(),
       '/return-success' => const GenericActionResultScreen(
         title: 'تم إرسال طلب الإرجاع',
-        message: 'رقم الطلب #RET-13842، سنراجع الطلب ونخبرك بالتحديثات.',
+        message: 'تم إرسال الطلب بنجاح وسنخبرك بالتحديثات.',
       ),
       '/refund-status' => const RefundStatusScreen(),
       '/invoice' => const InvoiceScreen(),
@@ -205,7 +192,9 @@ class _FirstProductScreen extends StatelessWidget {
         ),
       );
     }
-    final safeIndex = index.clamp(0, products.length - 1);
+    final safeIndex = index < 0
+        ? 0
+        : (index >= products.length ? products.length - 1 : index);
     return ProductDetailsScreen(product: products[safeIndex]);
   }
 }
@@ -261,7 +250,9 @@ class _FirstAuctionScreen extends StatelessWidget {
         ),
       );
     }
-    final safeIndex = index.clamp(0, auctions.length - 1);
+    final safeIndex = index < 0
+        ? 0
+        : (index >= auctions.length ? auctions.length - 1 : index);
     return AuctionDetailsScreen(auction: auctions[safeIndex]);
   }
 }
