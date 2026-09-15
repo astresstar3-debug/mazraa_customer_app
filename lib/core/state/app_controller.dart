@@ -1,48 +1,197 @@
 import 'package:flutter/material.dart';
 
+import '../../features/auth/data/auth_repository.dart';
 import '../../features/marketplace/data/marketplace_repository.dart';
 import '../../features/marketplace/domain/marketplace_models.dart';
+import '../network/api_client.dart';
 
 class AppController extends ChangeNotifier {
-  AppController({MarketplaceRepository? repository})
-    : repository = repository ?? const LocalMarketplaceRepository();
-  final MarketplaceRepository repository;
-  final Set<String> favorites = {'honey', 'seedlings'};
-  final Map<String, int> _cart = {'honey': 1, 'dates': 2};
-  ThemeMode themeMode = ThemeMode.light;
-  String location = 'الرياض';
+  AppController({ApiClient? apiClient}) : client = apiClient ?? ApiClient() {
+    repository = MarketplaceRepository(client);
+    authRepository = AuthRepository(client);
+  }
 
-  List<Product> get products => repository.products;
-  List<Auction> get auctions => repository.auctions;
-  List<CartLine> get cart => _cart.entries
-      .map((e) => CartLine(products.firstWhere((p) => p.id == e.key), e.value))
-      .toList();
-  int get cartCount => _cart.values.fold(0, (sum, value) => sum + value);
-  double get subtotal =>
-      cart.fold(0, (sum, line) => sum + line.product.price * line.quantity);
+  final ApiClient client;
+  late final MarketplaceRepository repository;
+  late final AuthRepository authRepository;
+
+  final Set<String> favorites = <String>{};
+  final List<Product> _products = <Product>[];
+  final List<Auction> _auctions = <Auction>[];
+  final List<String> _categories = <String>[];
+  final List<CartLine> _cart = <CartLine>[];
+
+  ThemeMode themeMode = ThemeMode.light;
+  String location = '';
+  bool isLoading = false;
+  String? errorMessage;
+  AuthSession? session;
+
+  List<Product> get products => List.unmodifiable(_products);
+  List<Auction> get auctions => List.unmodifiable(_auctions);
+  List<String> get categories => List.unmodifiable(_categories);
+  List<CartLine> get cart => List.unmodifiable(_cart);
+  bool get isAuthenticated => session != null && client.accessToken != null;
+
+  int get cartCount => _cart.fold(0, (sum, line) => sum + line.quantity);
+  double get subtotal => _cart.fold(
+        0,
+        (sum, line) => sum + line.product.price * line.quantity,
+      );
+
+  Future<void> initialize() async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final values = await Future.wait<dynamic>([
+        repository.fetchProducts(),
+        repository.fetchCategories(),
+        repository.fetchAuctions(),
+      ]);
+      _products
+        ..clear()
+        ..addAll(values[0] as List<Product>);
+      _categories
+        ..clear()
+        ..addAll(values[1] as List<String>);
+      _auctions
+        ..clear()
+        ..addAll(values[2] as List<Auction>);
+    } on Object catch (error) {
+      errorMessage = _message(error);
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> refreshProducts({String? query, String sort = 'best_selling'}) async {
+    try {
+      final data = await repository.fetchProducts(query: query, sort: sort);
+      _products
+        ..clear()
+        ..addAll(data);
+      errorMessage = null;
+      notifyListeners();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+    }
+  }
+
+  Future<void> refreshCart() async {
+    if (!isAuthenticated) {
+      _cart.clear();
+      notifyListeners();
+      return;
+    }
+    try {
+      final data = await repository.fetchCart(_products);
+      _cart
+        ..clear()
+        ..addAll(data);
+      errorMessage = null;
+      notifyListeners();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> login(String email, String password) async {
+    errorMessage = null;
+    try {
+      session = await authRepository.login(email: email, password: password);
+      await refreshCart();
+      notifyListeners();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    errorMessage = null;
+    try {
+      session = await authRepository.register(
+        name: name,
+        email: email,
+        password: password,
+      );
+      await refreshCart();
+      notifyListeners();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await authRepository.logout();
+    } finally {
+      session = null;
+      _cart.clear();
+      favorites.clear();
+      notifyListeners();
+    }
+  }
+
   bool isFavorite(String id) => favorites.contains(id);
+
   void toggleFavorite(String id) {
     favorites.contains(id) ? favorites.remove(id) : favorites.add(id);
     notifyListeners();
   }
 
-  void addToCart(Product product) {
-    _cart.update(product.id, (value) => value + 1, ifAbsent: () => 1);
-    notifyListeners();
-  }
-
-  void setQuantity(Product product, int quantity) {
-    if (quantity <= 0) {
-      _cart.remove(product.id);
-    } else {
-      _cart[product.id] = quantity;
+  Future<void> addToCart(Product product, {int quantity = 1}) async {
+    if (!isAuthenticated) {
+      throw const ApiException('يرجى تسجيل الدخول أولًا لإضافة المنتجات إلى السلة.');
     }
-    notifyListeners();
+    try {
+      await repository.addToCart(product, quantity: quantity);
+      await refreshCart();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
   }
 
-  void clearCart() {
-    _cart.clear();
-    notifyListeners();
+  Future<void> setQuantity(Product product, int quantity) async {
+    final index = _cart.indexWhere((line) => line.product.id == product.id);
+    if (index < 0) return;
+    final line = _cart[index];
+    final itemId = line.cartItemId;
+    if (itemId == null) return;
+    try {
+      if (quantity <= 0) {
+        await repository.removeCartItem(itemId);
+      } else {
+        await repository.updateCartItem(itemId, quantity);
+      }
+      await refreshCart();
+    } on Object catch (error) {
+      errorMessage = _message(error);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> clearCart() async {
+    final ids = _cart.map((line) => line.cartItemId).whereType<int>().toList();
+    for (final id in ids) {
+      await repository.removeCartItem(id);
+    }
+    await refreshCart();
   }
 
   void toggleTheme(bool dark) {
@@ -54,6 +203,15 @@ class AppController extends ChangeNotifier {
     location = value;
     notifyListeners();
   }
+
+  String _message(Object error) =>
+      error is ApiException ? error.message : 'تعذر تحميل البيانات من الخادم.';
+
+  @override
+  void dispose() {
+    client.close();
+    super.dispose();
+  }
 }
 
 class AppScope extends InheritedNotifier<AppController> {
@@ -62,6 +220,7 @@ class AppScope extends InheritedNotifier<AppController> {
     required AppController controller,
     required super.child,
   }) : super(notifier: controller);
+
   static AppController of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<AppScope>()!.notifier!;
 }
