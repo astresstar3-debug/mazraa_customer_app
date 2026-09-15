@@ -183,12 +183,20 @@ class AppController extends ChangeNotifier {
     try {
       await authRepository.logout();
     } finally {
-      session = null;
-      _cart.clear();
-      favorites.clear();
-      _wishlistIds.clear();
-      notifyListeners();
+      clearLocalSession();
     }
+  }
+
+  void clearLocalSession() {
+    session = null;
+    client.accessToken = null;
+    client.refreshToken = null;
+    _cart.clear();
+    favorites.clear();
+    _wishlistIds.clear();
+    repository.orders.clear();
+    errorMessage = null;
+    notifyListeners();
   }
 
   bool isFavorite(String id) => favorites.contains(id);
