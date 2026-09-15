@@ -12,6 +12,10 @@ class MarketplaceRepository {
   List<String> get categories => List.unmodifiable(_categories);
   List<AppOrder> get orders => List.unmodifiable(_orders);
 
+  void clearUserData() {
+    _orders.clear();
+  }
+
   Future<List<Product>> fetchProducts({
     String? query,
     String sort = 'best_selling',
