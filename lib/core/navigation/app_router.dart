@@ -13,7 +13,6 @@ import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_recovery_screens.dart';
-import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
 import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
@@ -32,8 +31,8 @@ abstract final class AppRouter {
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
       '/reset-password' => const ConnectedResetPasswordScreen(),
       '/otp' => const ConnectedResetPasswordScreen(),
-      '/location-permission' => const LocationPermissionScreen(),
-      '/location' => const LocationScreen(),
+      '/location-permission' => const ConnectedAddressesScreen(),
+      '/location' => const ConnectedAddressesScreen(),
       '/categories' => const ConnectedCategoriesScreen(),
       '/search' => const ConnectedSearchScreen(),
       '/products' => const ConnectedProductListScreen(),
@@ -56,17 +55,20 @@ abstract final class AppRouter {
       '/my-auctions' => const ConnectedMyAuctionsScreen(),
       '/bid-history' => const ConnectedMyAuctionsScreen(historyOnly: true),
       '/auction-reminder' => const _ReminderRoute(),
-      '/guarantee-details' => const GuaranteeDetailsScreen(),
+      '/guarantee-details' => const _ServerFeatureUnavailableScreen(
+        title: 'ضمان المزاد',
+        message: 'لا يوجد في نسخة السيرفر الحالية endpoint مستقل لضمان المزاد. لن يعرض التطبيق مبلغ ضمان تجريبيًا.',
+      ),
       '/cart' => const ConnectedCartScreen(),
       '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
       '/checkout' => const ConnectedCheckoutScreen(),
-      '/delivery-slot' => const DeliverySlotScreen(),
-      '/delivery-preferences' => const DeliveryPreferencesScreen(),
+      '/delivery-slot' => const ConnectedCheckoutScreen(),
+      '/delivery-preferences' => const ConnectedCheckoutScreen(),
       '/payment-methods' => const ConnectedPaymentMethodsScreen(),
       '/add-card' => const ConnectedPaymentMethodsScreen(),
       '/edit-payment' => const ConnectedPaymentMethodsScreen(),
-      '/cash-on-delivery' => const CashOnDeliveryScreen(),
-      '/bank-transfer' => const BankTransferScreen(),
+      '/cash-on-delivery' => const ConnectedPaymentMethodsScreen(),
+      '/bank-transfer' => const ConnectedPaymentMethodsScreen(),
       '/order-success' => const ConnectedOrdersScreen(),
       '/payment-success' => const ConnectedOrdersScreen(),
       '/payment-failed' => const ConnectedCheckoutScreen(),
@@ -267,4 +269,22 @@ class _FirstOrderActionRoute extends StatelessWidget {
       _OrderAction.returnOrder => ConnectedReturnRequestScreen(orderId: id),
     };
   }
+}
+
+class _ServerFeatureUnavailableScreen extends StatelessWidget {
+  const _ServerFeatureUnavailableScreen({required this.title, required this.message});
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: MazraaAppBar(title: title),
+        body: ResultStateView(
+          kind: ResultKind.empty,
+          title: title,
+          message: message,
+          primaryLabel: 'العودة للمزادات',
+          onPrimary: () => Navigator.pushReplacementNamed(context, '/auctions'),
+        ),
+      );
 }
