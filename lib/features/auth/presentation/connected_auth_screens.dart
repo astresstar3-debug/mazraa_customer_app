@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/state/app_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
+import '../../account/data/account_repository.dart';
 
 class ConnectedLoginScreen extends StatefulWidget {
   const ConnectedLoginScreen({super.key});
@@ -77,7 +78,7 @@ class _ConnectedLoginScreenState extends State<ConnectedLoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
-                  labelText: 'رقم الجوال أو البريد الإلكتروني',
+                  labelText: 'البريد الإلكتروني',
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
               ),
@@ -175,9 +176,10 @@ class _ConnectedRegisterScreenState extends State<ConnectedRegisterScreen> {
   }
 
   Future<void> _register() async {
-    if (nameController.text.trim().isEmpty ||
-        emailController.text.trim().isEmpty ||
-        passwordController.text.isEmpty) {
+    final name = nameController.text.trim();
+    final phone = phoneController.text.trim();
+    final email = emailController.text.trim();
+    if (name.isEmpty || email.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('أكمل الحقول المطلوبة')),
       );
@@ -200,9 +202,16 @@ class _ConnectedRegisterScreenState extends State<ConnectedRegisterScreen> {
     final app = AppScope.of(context);
     try {
       await app.register(
-        name: nameController.text.trim(),
-        email: emailController.text.trim(),
+        name: name,
+        email: email,
         password: passwordController.text,
+      );
+      // The current register endpoint creates the account with an empty phone.
+      // Persist the phone immediately through the authenticated profile API.
+      await AccountRepository(app.client).updateProfile(
+        name: name,
+        email: email,
+        phone: phone,
       );
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
