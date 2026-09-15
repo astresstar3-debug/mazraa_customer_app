@@ -194,7 +194,7 @@ class AppController extends ChangeNotifier {
     _cart.clear();
     favorites.clear();
     _wishlistIds.clear();
-    repository.orders.clear();
+    repository.clearUserData();
     errorMessage = null;
     notifyListeners();
   }
