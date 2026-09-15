@@ -16,13 +16,14 @@ class NetworkAwareAssetBundle extends CachingAssetBundle {
   Future<ByteData> load(String key) async {
     if (!_isNetworkKey(key)) return fallback.load(key);
 
-    final request = await _httpClient.getUrl(Uri.parse(key));
+    final uri = Uri.parse(key);
+    final request = await _httpClient.getUrl(uri);
     final response = await request.close();
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      await response.drain<void>();
+      await response.drain();
       throw HttpException(
         'Unable to load image ($key): HTTP ${response.statusCode}',
-        uri: Uri.parse(key),
+        uri: uri,
       );
     }
 
@@ -30,8 +31,7 @@ class NetworkAwareAssetBundle extends CachingAssetBundle {
     await for (final chunk in response) {
       builder.add(chunk);
     }
-    final bytes = builder.takeBytes();
-    return ByteData.sublistView(bytes);
+    return ByteData.sublistView(builder.takeBytes());
   }
 
   @override
