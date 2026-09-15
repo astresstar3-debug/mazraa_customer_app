@@ -126,11 +126,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> refreshOrders() async {
-    if (!isAuthenticated) {
-      repository.clearUserData();
-      notifyListeners();
-      return;
-    }
+    if (!isAuthenticated) return;
     try {
       await repository.fetchOrders(_products);
       notifyListeners();
@@ -191,7 +187,6 @@ class AppController extends ChangeNotifier {
       _cart.clear();
       favorites.clear();
       _wishlistIds.clear();
-      repository.clearUserData();
       notifyListeners();
     }
   }
