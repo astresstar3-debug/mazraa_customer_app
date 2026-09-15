@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/state/app_controller.dart';
 import '../account/presentation/connected_account_screen.dart';
-import '../auctions/presentation/auction_screens.dart';
+import '../auctions/presentation/connected_auction_screens.dart';
 import '../cart/presentation/connected_cart_screens.dart';
 import '../home/presentation/home_screen_v2.dart';
 import '../marketplace/presentation/marketplace_screens.dart';
@@ -19,7 +19,7 @@ class _MainShellState extends State<MainShell> {
   late final pages = const [
     HomeScreen(),
     CategoriesScreen(),
-    AuctionListScreen(embedded: true),
+    ConnectedAuctionListScreen(embedded: true),
     ConnectedCartScreen(embedded: true),
     ConnectedAccountScreen(embedded: true),
   ];
