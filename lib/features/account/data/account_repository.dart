@@ -102,16 +102,8 @@ class AccountRepository {
 
   Future<void> deleteAddress(int id) => client.delete('/api/Addresses/$id');
 
-  Future<void> setDefaultAddress(int id) async {
-    final existing = await client.get('/api/Addresses/$id');
-    final map = jsonMap(existing);
-    await client.put('/api/Addresses/$id', body: {
-      'city': '${jsonValue(map, 'city') ?? ''}',
-      'street': '${jsonValue(map, 'street') ?? ''}',
-      'details': '${jsonValue(map, 'details') ?? ''}',
-      'isDefault': true,
-    });
-  }
+  Future<void> setDefaultAddress(int id) =>
+      client.put('/api/Addresses/$id/default');
 
   Future<Map<String, dynamic>> createWalletTopUp(double amount) async {
     return jsonMap(await client.post('/api/wallets/top-up', body: {
