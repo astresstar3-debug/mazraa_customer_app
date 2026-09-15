@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/account/presentation/account_screens.dart';
 import '../../features/account/presentation/connected_account_data_screens.dart';
 import '../../features/account/presentation/connected_account_screen.dart';
+import '../../features/account/presentation/connected_customer_service_screens.dart';
 import '../../features/account/presentation/misc_screens.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auctions/presentation/connected_auction_screens.dart';
@@ -78,36 +79,20 @@ abstract final class AppRouter {
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
       '/wallet-topup-success' => const ConnectedWalletScreen(),
       '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
-      '/orders' => const OrdersScreen(),
-      '/order-details' => const OrderDetailsScreen(),
-      '/track-order' => const TrackOrderScreen(),
-      '/cancel-order' => const CancelOrderScreen(),
-      '/order-cancelled' => const GenericActionResultScreen(
-        title: 'تم إلغاء الطلب بنجاح',
-        message: 'تم إلغاء طلبك وسيتم تحديث حالة الاسترداد من الخادم.',
-      ),
-      '/rate-order' => const RateOrderScreen(),
-      '/returns' => const ReturnsScreen(),
-      '/return-request' => const ReturnRequestScreen(),
-      '/return-success' => const GenericActionResultScreen(
-        title: 'تم إرسال طلب الإرجاع',
-        message: 'تم إرسال الطلب بنجاح وسنخبرك بالتحديثات.',
-      ),
-      '/refund-status' => const RefundStatusScreen(),
-      '/invoice' => const InvoiceScreen(),
-      '/support' => const SupportScreen(),
-      '/support-ticket' => const SimpleFormScreen(
-        title: 'فتح تذكرة دعم',
-        icon: Icons.confirmation_number_outlined,
-        button: 'إرسال التذكرة',
-        fields: [
-          FormFieldSpec('نوع المشكلة', Icons.category_outlined),
-          FormFieldSpec('رقم الطلب (اختياري)', Icons.receipt_outlined),
-          FormFieldSpec('عنوان المشكلة', Icons.edit_outlined),
-          FormFieldSpec('اشرح المشكلة بالتفصيل', Icons.chat_bubble_outline_rounded, multiline: true),
-        ],
-      ),
-      '/support-chat' => const SupportChatScreen(),
+      '/orders' => const ConnectedOrdersScreen(),
+      '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
+      '/track-order' => const _FirstOrderActionRoute(action: _OrderAction.track),
+      '/cancel-order' => const _FirstOrderActionRoute(action: _OrderAction.cancel),
+      '/order-cancelled' => const ConnectedOrdersScreen(),
+      '/rate-order' => const _FirstOrderActionRoute(action: _OrderAction.rate),
+      '/returns' => const ConnectedReturnsScreen(),
+      '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
+      '/return-success' => const ConnectedReturnsScreen(),
+      '/refund-status' => const ConnectedReturnsScreen(),
+      '/invoice' => const _FirstOrderActionRoute(action: _OrderAction.details),
+      '/support' => const ConnectedSupportScreen(),
+      '/support-ticket' => const ConnectedSupportTicketScreen(),
+      '/support-chat' => const ConnectedSupportScreen(),
       '/legal' => const LegalScreen(),
       '/delete-account' => const DeleteAccountScreen(),
       '/offline' => const GenericActionResultScreen(
@@ -237,5 +222,43 @@ class _ReminderRoute extends StatelessWidget {
       );
     }
     return AuctionReminderScreen(auction: auctions.first);
+  }
+}
+
+enum _OrderAction { details, track, cancel, rate, returnOrder }
+
+class _FirstOrderActionRoute extends StatelessWidget {
+  const _FirstOrderActionRoute({required this.action});
+  final _OrderAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    final orders = AppScope.of(context).orders;
+    if (orders.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد طلبات',
+          message: 'لا يوجد طلب متاح لهذه العملية.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+    final id = int.tryParse(orders.first.id) ?? 0;
+    if (id <= 0) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'تعذر فتح الطلب',
+          message: 'رقم الطلب غير صالح.',
+          kind: ResultKind.error,
+        ),
+      );
+    }
+    return switch (action) {
+      _OrderAction.details => ConnectedOrderDetailsScreen(orderId: id),
+      _OrderAction.track => ConnectedTrackOrderScreen(orderId: id),
+      _OrderAction.cancel => ConnectedCancelOrderScreen(orderId: id),
+      _OrderAction.rate => ConnectedRateOrderScreen(orderId: id),
+      _OrderAction.returnOrder => ConnectedReturnRequestScreen(orderId: id),
+    };
   }
 }
