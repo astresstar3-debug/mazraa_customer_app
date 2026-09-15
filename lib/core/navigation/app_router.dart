@@ -4,10 +4,12 @@ import '../../features/account/presentation/account_screens.dart';
 import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/misc_screens.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
+import '../../features/auctions/presentation/connected_auction_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
+import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
 import '../../features/marketplace/presentation/marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
@@ -24,11 +26,17 @@ abstract final class AppRouter {
       '/otp' => const OtpScreen(),
       '/location-permission' => const LocationPermissionScreen(),
       '/location' => const LocationScreen(),
-      '/categories' => const CategoriesScreen(),
-      '/search' => const SearchScreen(),
-      '/products' => const ProductListScreen(),
-      '/offers' => const OffersScreen(),
-      '/coupon' => const CouponScreen(),
+      '/categories' => const ConnectedCategoriesScreen(),
+      '/search' => const ConnectedSearchScreen(),
+      '/products' => const ConnectedProductListScreen(),
+      '/offers' => const ConnectedProductListScreen(
+        title: 'العروض',
+        onlyOffers: true,
+      ),
+      '/coupon' => const ConnectedProductListScreen(
+        title: 'العروض',
+        onlyOffers: true,
+      ),
       '/product-details' => const _FirstProductScreen(),
       '/product-medicine' => const _FirstProductScreen(index: 7),
       '/product-feed' => const _FirstProductScreen(index: 3),
@@ -36,15 +44,13 @@ abstract final class AppRouter {
       '/ask-question' => const _AskRoute(),
       '/favorites' => const FavoritesScreen(),
       '/favorites-empty' => const FavoritesScreen(empty: true),
-      '/auctions' => const AuctionListScreen(),
+      '/auctions' => const ConnectedAuctionListScreen(),
       '/auction-details' => const _FirstAuctionScreen(),
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
       '/auction-bid' => const _BidRoute(),
-      '/auction-success' => const _AuctionResultRoute(),
-      '/auction-won' => const _AuctionResultRoute(kind: AuctionResultKind.won),
-      '/auction-ended' => const _AuctionResultRoute(
-        kind: AuctionResultKind.ended,
-      ),
+      '/auction-success' => const _FirstAuctionScreen(),
+      '/auction-won' => const _FirstAuctionScreen(),
+      '/auction-ended' => const _FirstAuctionScreen(),
       '/my-auctions' => const MyAuctionsScreen(),
       '/bid-history' => const MyAuctionsScreen(history: true),
       '/auction-reminder' => const _ReminderRoute(),
@@ -170,6 +176,7 @@ abstract final class AppRouter {
 class _FirstProductScreen extends StatelessWidget {
   const _FirstProductScreen({this.index = 0});
   final int index;
+
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
@@ -185,12 +192,13 @@ class _FirstProductScreen extends StatelessWidget {
     final safeIndex = index < 0
         ? 0
         : (index >= products.length ? products.length - 1 : index);
-    return ProductDetailsScreen(product: products[safeIndex]);
+    return ConnectedProductDetailsScreen(product: products[safeIndex]);
   }
 }
 
 class _ReviewRoute extends StatelessWidget {
   const _ReviewRoute();
+
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
@@ -209,6 +217,7 @@ class _ReviewRoute extends StatelessWidget {
 
 class _AskRoute extends StatelessWidget {
   const _AskRoute();
+
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
@@ -228,6 +237,7 @@ class _AskRoute extends StatelessWidget {
 class _FirstAuctionScreen extends StatelessWidget {
   const _FirstAuctionScreen({this.index = 0});
   final int index;
+
   @override
   Widget build(BuildContext context) {
     final auctions = AppScope.of(context).auctions;
@@ -243,16 +253,17 @@ class _FirstAuctionScreen extends StatelessWidget {
     final safeIndex = index < 0
         ? 0
         : (index >= auctions.length ? auctions.length - 1 : index);
-    return AuctionDetailsScreen(auction: auctions[safeIndex]);
+    return ConnectedAuctionDetailsScreen(auction: auctions[safeIndex]);
   }
 }
 
 class _BidRoute extends StatelessWidget {
   const _BidRoute();
+
   @override
   Widget build(BuildContext context) {
-    final auctions = AppScope.of(context).auctions;
-    if (auctions.isEmpty) {
+    final app = AppScope.of(context);
+    if (app.auctions.isEmpty) {
       return const Scaffold(
         body: ResultStateView(
           title: 'لا توجد مزادات',
@@ -261,31 +272,14 @@ class _BidRoute extends StatelessWidget {
         ),
       );
     }
-    return BidScreen(auction: auctions.first);
-  }
-}
-
-class _AuctionResultRoute extends StatelessWidget {
-  const _AuctionResultRoute({this.kind = AuctionResultKind.success});
-  final AuctionResultKind kind;
-  @override
-  Widget build(BuildContext context) {
-    final auctions = AppScope.of(context).auctions;
-    if (auctions.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد مزادات',
-          message: 'لا توجد بيانات مزاد متاحة.',
-          kind: ResultKind.empty,
-        ),
-      );
-    }
-    return AuctionResultScreen(auction: auctions.first, kind: kind);
+    if (!app.isAuthenticated) return const ConnectedLoginScreen();
+    return ConnectedBidScreen(auction: app.auctions.first);
   }
 }
 
 class _ReminderRoute extends StatelessWidget {
   const _ReminderRoute();
+
   @override
   Widget build(BuildContext context) {
     final auctions = AppScope.of(context).auctions;
