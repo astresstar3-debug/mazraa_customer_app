@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/navigation/app_router.dart';
+import '../core/network/network_aware_asset_bundle.dart';
 import '../core/state/app_controller.dart';
 import '../core/theme/app_theme.dart';
 
@@ -13,6 +14,7 @@ class MazraaApp extends StatefulWidget {
 
 class _MazraaAppState extends State<MazraaApp> {
   final controller = AppController();
+  final assetBundle = NetworkAwareAssetBundle();
 
   @override
   void initState() {
@@ -22,6 +24,7 @@ class _MazraaAppState extends State<MazraaApp> {
 
   @override
   void dispose() {
+    assetBundle.close();
     controller.dispose();
     super.dispose();
   }
@@ -41,8 +44,13 @@ class _MazraaAppState extends State<MazraaApp> {
         initialRoute:
             WidgetsBinding.instance.platformDispatcher.defaultRouteName,
         onGenerateRoute: AppRouter.onGenerateRoute,
-        builder: (context, child) =>
-            Directionality(textDirection: TextDirection.rtl, child: child!),
+        builder: (context, child) => DefaultAssetBundle(
+          bundle: assetBundle,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: child!,
+          ),
+        ),
       ),
     ),
   );
