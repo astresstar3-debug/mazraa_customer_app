@@ -1,19 +1,25 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/marketplace/data/marketplace_repository.dart';
 import '../../features/marketplace/domain/marketplace_models.dart';
 import '../network/api_client.dart';
+import '../notifications/push_notification_service.dart';
 
 class AppController extends ChangeNotifier {
   AppController({ApiClient? apiClient}) : client = apiClient ?? ApiClient() {
     repository = MarketplaceRepository(client);
     authRepository = AuthRepository(client);
+    pushNotifications = PushNotificationService(client)
+      ..onForegroundMessage = _handlePush
+      ..onOpenedMessage = _handlePush;
   }
 
   final ApiClient client;
   late final MarketplaceRepository repository;
   late final AuthRepository authRepository;
+  late final PushNotificationService pushNotifications;
 
   final Set<String> favorites = <String>{};
   final Map<String, int> _wishlistIds = <String, int>{};
@@ -27,13 +33,15 @@ class AppController extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   AuthSession? session;
+  RemoteMessage? lastPushMessage;
 
   List<Product> get products => List.unmodifiable(_products);
   List<Auction> get auctions => List.unmodifiable(_auctions);
   List<String> get categories => List.unmodifiable(_categories);
   List<CartLine> get cart => List.unmodifiable(_cart);
   List<AppOrder> get orders => repository.orders;
-  bool get isAuthenticated => session != null && client.accessToken != null;
+  bool get isAuthenticated =>
+      session != null && (client.accessToken?.isNotEmpty ?? false);
 
   int get cartCount => _cart.fold(0, (sum, line) => sum + line.quantity);
   double get subtotal => _cart.fold(
@@ -46,6 +54,9 @@ class AppController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
+      await pushNotifications.initialize();
+      session = await authRepository.restoreSession();
+
       final values = await Future.wait<dynamic>([
         repository.fetchProducts(),
         repository.fetchCategories(),
@@ -60,12 +71,42 @@ class AppController extends ChangeNotifier {
       _auctions
         ..clear()
         ..addAll(values[2] as List<Auction>);
+
+      if (isAuthenticated) {
+        await _afterAuthenticated();
+      }
+      final initialMessage = await pushNotifications.getInitialMessage();
+      if (initialMessage != null) _handlePush(initialMessage);
     } on Object catch (error) {
       errorMessage = _message(error);
     } finally {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  void _handlePush(RemoteMessage message) {
+    lastPushMessage = message;
+    notifyListeners();
+  }
+
+  Future<void> _afterAuthenticated() async {
+    await Future.wait<void>([
+      refreshCart(),
+      refreshWishlist(),
+      refreshOrders(),
+    ]);
+    try {
+      await pushNotifications.registerCurrentToken();
+    } catch (_) {
+      // The session remains valid if FCM registration is temporarily unavailable.
+    }
+  }
+
+  Future<void> applyAuthenticatedSession(AuthSession value) async {
+    session = value;
+    await _afterAuthenticated();
+    notifyListeners();
   }
 
   Future<void> refreshProducts({String? query, String sort = 'best_selling'}) async {
@@ -141,11 +182,7 @@ class AppController extends ChangeNotifier {
     errorMessage = null;
     try {
       session = await authRepository.login(email: email, password: password);
-      await Future.wait<void>([
-        refreshCart(),
-        refreshWishlist(),
-        refreshOrders(),
-      ]);
+      await _afterAuthenticated();
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
@@ -166,11 +203,7 @@ class AppController extends ChangeNotifier {
         email: email,
         password: password,
       );
-      await Future.wait<void>([
-        refreshCart(),
-        refreshWishlist(),
-        refreshOrders(),
-      ]);
+      await _afterAuthenticated();
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
@@ -181,6 +214,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> logout() async {
     try {
+      await pushNotifications.unregisterCurrentToken();
       await authRepository.logout();
     } finally {
       clearLocalSession();
@@ -220,9 +254,7 @@ class AppController extends ChangeNotifier {
     try {
       if (favorites.contains(id)) {
         final wishlistId = _wishlistIds[id];
-        if (wishlistId != null) {
-          await repository.removeWishlist(wishlistId);
-        }
+        if (wishlistId != null) await repository.removeWishlist(wishlistId);
         favorites.remove(id);
         _wishlistIds.remove(id);
       } else {
@@ -294,6 +326,7 @@ class AppController extends ChangeNotifier {
 
   @override
   void dispose() {
+    pushNotifications.dispose();
     client.close();
     super.dispose();
   }
