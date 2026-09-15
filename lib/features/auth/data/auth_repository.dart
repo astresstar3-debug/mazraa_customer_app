@@ -1,3 +1,4 @@
+import '../../../core/auth/session_storage.dart';
 import '../../../core/network/api_client.dart';
 
 class AuthSession {
@@ -17,8 +18,11 @@ class AuthSession {
 }
 
 class AuthRepository {
-  AuthRepository(this.client);
+  AuthRepository(this.client, {SessionStorage storage = const SessionStorage()})
+      : _storage = storage;
+
   final ApiClient client;
+  final SessionStorage _storage;
 
   Future<AuthSession> login({
     required String email,
@@ -43,6 +47,23 @@ class AuthRepository {
       'password': password,
     }));
     return _apply(response);
+  }
+
+  Future<AuthSession?> restoreSession() async {
+    final stored = await _storage.read();
+    if (stored == null || stored.refreshToken.isEmpty) return null;
+    try {
+      final response = jsonMap(await client.post('/api/Auth/refresh', body: {
+        'refreshToken': stored.refreshToken,
+        'deviceName': 'mazraa_customer_app',
+      }));
+      return _apply(response);
+    } catch (_) {
+      client.accessToken = null;
+      client.refreshToken = null;
+      await _storage.clear();
+      return null;
+    }
   }
 
   Future<void> forgotPassword(String email) =>
@@ -88,18 +109,22 @@ class AuthRepository {
 
   Future<void> logout() async {
     final refresh = client.refreshToken;
-    if (refresh != null && refresh.isNotEmpty) {
-      await client.post('/api/Auth/logout', body: {'refreshToken': refresh});
+    try {
+      if (refresh != null && refresh.isNotEmpty) {
+        await client.post('/api/Auth/logout', body: {'refreshToken': refresh});
+      }
+    } finally {
+      client.accessToken = null;
+      client.refreshToken = null;
+      await _storage.clear();
     }
-    client.accessToken = null;
-    client.refreshToken = null;
   }
 
-  AuthSession _apply(Map<String, dynamic> map) {
+  Future<AuthSession> _apply(Map<String, dynamic> map) async {
     final access = '${jsonValue(map, 'token') ?? ''}';
     final refresh = '${jsonValue(map, 'refreshToken') ?? ''}';
-    if (access.isEmpty) {
-      throw const ApiException('لم يُرجع الخادم رمز دخول صالحًا.');
+    if (access.isEmpty || refresh.isEmpty) {
+      throw const ApiException('لم يُرجع الخادم جلسة دخول صالحة.');
     }
     client.accessToken = access;
     client.refreshToken = refresh;
@@ -111,12 +136,20 @@ class AuthRepository {
             if (jsonValue(map, 'role') != null) '${jsonValue(map, 'role')}',
           ];
     final rawId = jsonValue(map, 'userId');
-    return AuthSession(
+    final session = AuthSession(
       accessToken: access,
       refreshToken: refresh,
       userId: rawId is num ? rawId.toInt() : int.tryParse('$rawId'),
       email: '${jsonValue(map, 'email') ?? ''}',
       roles: roles,
     );
+    await _storage.save(
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken,
+      userId: session.userId,
+      email: session.email,
+      roles: session.roles,
+    );
+    return session;
   }
 }
