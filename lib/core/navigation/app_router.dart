@@ -24,6 +24,7 @@ import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/fixed_checkout_screen.dart';
 import '../../features/cart/presentation/matched_cart_screens.dart';
 import '../../features/cart/presentation/matched_delivery_payment_screens.dart';
+import '../../features/cart/presentation/pixel_checkout_result_screens.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
 import '../../features/marketplace/presentation/matched_product_screens.dart';
 import '../../features/marketplace/presentation/pixel_medicine_screen.dart';
@@ -88,10 +89,10 @@ abstract final class AppRouter {
       '/edit-payment' => const MatchedCardFormScreen(editing: true),
       '/cash-on-delivery' => const MatchedCashOnDeliveryScreen(),
       '/bank-transfer' => const MatchedBankTransferScreen(),
-      '/order-success' => const OrderSuccessScreen(),
-      '/payment-success' => const PaymentResultScreen(success: true),
-      '/payment-failed' => const PaymentResultScreen(success: false),
-      '/wallet-pending' => const WalletPendingScreen(),
+      '/order-success' => const PixelOrderSuccessScreen(),
+      '/payment-success' => const PixelPaymentResultScreen(success: true),
+      '/payment-failed' => const PixelPaymentResultScreen(success: false),
+      '/wallet-pending' => const PixelWalletPendingScreen(),
       '/account' => const MatchedAccountScreen(),
       '/edit-profile' => const MatchedEditProfileScreen(),
       '/profile-avatar' => const ConnectedAvatarScreen(),
