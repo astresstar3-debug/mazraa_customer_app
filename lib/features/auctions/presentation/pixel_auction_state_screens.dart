@@ -151,15 +151,18 @@ class _PixelAuctionReminderV2ScreenState extends State<PixelAuctionReminderV2Scr
               const SizedBox(height: 14),
               Container(
                 decoration: _panel(),
-                child: Column(
-                  children: List.generate(
-                    values.length,
-                    (index) => RadioListTile<int>(
-                      value: index,
-                      groupValue: selected,
-                      onChanged: (value) => setState(() => selected = value ?? 1),
-                      activeColor: AppColors.forest,
-                      title: Text(values[index], style: const TextStyle(fontWeight: FontWeight.w800)),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Column(
+                    children: List.generate(
+                      values.length,
+                      (index) => RadioListTile<int>(
+                        value: index,
+                        groupValue: selected,
+                        onChanged: (value) => setState(() => selected = value ?? 1),
+                        activeColor: AppColors.forest,
+                        title: Text(values[index], style: const TextStyle(fontWeight: FontWeight.w800)),
+                      ),
                     ),
                   ),
                 ),
