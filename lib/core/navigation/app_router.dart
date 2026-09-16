@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../features/account/presentation/account_screens.dart';
-import '../../features/account/presentation/misc_screens.dart';
-import '../../features/auctions/presentation/auction_screens.dart';
+import '../../features/account/presentation/connected_account_data_screens.dart';
+import '../../features/account/presentation/connected_account_screen.dart';
+import '../../features/account/presentation/connected_customer_service_screens.dart';
+import '../../features/account/presentation/connected_delete_account_screen.dart';
+import '../../features/account/presentation/connected_server_account_extras.dart';
+import '../../features/account/presentation/connected_support_chat_screen.dart';
+import '../../features/auctions/presentation/connected_auction_screens.dart';
+import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
-import '../../features/cart/presentation/cart_screens.dart';
+import '../../features/auth/presentation/connected_auth_screens.dart';
+import '../../features/auth/presentation/connected_phone_verification_screen.dart';
+import '../../features/auth/presentation/connected_recovery_screens.dart';
+import '../../features/cart/presentation/connected_cart_screens.dart';
+import '../../features/cart/presentation/connected_coupons_screen.dart';
+import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
+import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
+import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
 import '../../features/marketplace/presentation/marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
@@ -15,17 +28,18 @@ abstract final class AppRouter {
     final page = switch (settings.name) {
       '/' => const MainShell(),
       '/onboarding' => const OnboardingScreen(),
-      '/login' => const LoginScreen(),
-      '/register' => const RegisterScreen(),
-      '/forgot-password' => const ForgotPasswordScreen(),
-      '/otp' => const OtpScreen(),
-      '/location-permission' => const LocationPermissionScreen(),
-      '/location' => const LocationScreen(),
-      '/categories' => const CategoriesScreen(),
-      '/search' => const SearchScreen(),
-      '/products' => const ProductListScreen(),
-      '/offers' => const OffersScreen(),
-      '/coupon' => const CouponScreen(),
+      '/login' => const ConnectedLoginScreen(),
+      '/register' => const ConnectedRegisterScreen(),
+      '/forgot-password' => const ConnectedForgotPasswordScreen(),
+      '/reset-password' => const ConnectedResetPasswordScreen(),
+      '/otp' => const ConnectedPhoneVerificationScreen(),
+      '/location-permission' => const ConnectedAddressesScreen(),
+      '/location' => const ConnectedAddressesScreen(),
+      '/categories' => const ConnectedCategoriesScreen(),
+      '/search' => const ConnectedSearchScreen(),
+      '/products' => const ConnectedProductListScreen(),
+      '/offers' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
+      '/coupon' => const ConnectedCouponsScreen(),
       '/product-details' => const _FirstProductScreen(),
       '/product-medicine' => const _FirstProductScreen(index: 7),
       '/product-feed' => const _FirstProductScreen(index: 3),
@@ -33,151 +47,68 @@ abstract final class AppRouter {
       '/ask-question' => const _AskRoute(),
       '/favorites' => const FavoritesScreen(),
       '/favorites-empty' => const FavoritesScreen(empty: true),
-      '/auctions' => const AuctionListScreen(),
+      '/auctions' => const ConnectedAuctionListScreen(),
       '/auction-details' => const _FirstAuctionScreen(),
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
       '/auction-bid' => const _BidRoute(),
-      '/auction-success' => const _AuctionResultRoute(),
-      '/auction-won' => const _AuctionResultRoute(kind: AuctionResultKind.won),
-      '/auction-ended' => const _AuctionResultRoute(
-        kind: AuctionResultKind.ended,
+      '/auction-success' => const _FirstAuctionScreen(),
+      '/auction-won' => const ConnectedMyAuctionsScreen(),
+      '/auction-ended' => const ConnectedMyAuctionsScreen(),
+      '/my-auctions' => const ConnectedMyAuctionsScreen(),
+      '/bid-history' => const ConnectedMyAuctionsScreen(historyOnly: true),
+      '/auction-reminder' => const _ServerFeatureUnavailableScreen(
+        title: 'تذكير المزاد',
+        message: 'لا يوجد في نسخة السيرفر الحالية endpoint لحفظ تذكيرات المزادات، لذلك لن يعرض التطبيق نجاحًا محليًا وهميًا.',
       ),
-      '/my-auctions' => const MyAuctionsScreen(),
-      '/bid-history' => const MyAuctionsScreen(history: true),
-      '/auction-reminder' => const _ReminderRoute(),
-      '/guarantee-details' => const GuaranteeDetailsScreen(),
-      '/cart' => const CartScreen(),
-      '/cart-empty' => const CartScreen(forceEmpty: true),
-      '/checkout' => const CheckoutScreen(),
-      '/delivery-slot' => const DeliverySlotScreen(),
-      '/delivery-preferences' => const DeliveryPreferencesScreen(),
-      '/payment-methods' => const PaymentMethodsScreen(),
-      '/add-card' => const AddCardScreen(),
-      '/edit-payment' => const PaymentMethodsScreen(),
-      '/cash-on-delivery' => const CashOnDeliveryScreen(),
-      '/bank-transfer' => const BankTransferScreen(),
-      '/order-success' => const OrderSuccessScreen(),
-      '/payment-success' => const PaymentResultScreen(),
-      '/payment-failed' => const PaymentResultScreen(success: false),
-      '/wallet-pending' => const WalletPendingScreen(),
-      '/account' => const AccountScreen(),
-      '/edit-profile' => const SimpleFormScreen(
-        title: 'تعديل البيانات',
-        icon: Icons.person_rounded,
-        fields: [
-          FormFieldSpec(
-            'الاسم الكامل',
-            Icons.person_outline_rounded,
-            hint: 'محمد العتيبي',
-          ),
-          FormFieldSpec(
-            'رقم الجوال',
-            Icons.phone_outlined,
-            hint: '+966 50 123 4567',
-            phone: true,
-          ),
-          FormFieldSpec(
-            'البريد الإلكتروني',
-            Icons.email_outlined,
-            hint: 'mohammed@example.com',
-          ),
-          FormFieldSpec('المدينة', Icons.location_on_outlined, hint: 'الرياض'),
-        ],
+      '/guarantee-details' => const _ServerFeatureUnavailableScreen(
+        title: 'ضمان المزاد',
+        message: 'لا يوجد في نسخة السيرفر الحالية endpoint مستقل لضمان المزاد. لن يعرض التطبيق مبلغ ضمان تجريبيًا.',
       ),
-      '/change-phone' => const SimpleFormScreen(
-        title: 'تغيير رقم الهاتف',
-        icon: Icons.phonelink_lock_rounded,
-        button: 'إرسال رمز التحقق',
-        fields: [
-          FormFieldSpec(
-            'رقم الجوال الحالي',
-            Icons.phone_android_rounded,
-            hint: '+966 50 123 4567',
-            phone: true,
-          ),
-          FormFieldSpec('رقم الجوال الجديد', Icons.phone_outlined, phone: true),
-        ],
-      ),
-      '/change-password' => const SimpleFormScreen(
-        title: 'تغيير كلمة المرور',
-        icon: Icons.lock_rounded,
-        button: 'تحديث كلمة المرور',
-        fields: [
-          FormFieldSpec(
-            'كلمة المرور الحالية',
-            Icons.lock_outline_rounded,
-            secure: true,
-          ),
-          FormFieldSpec(
-            'كلمة المرور الجديدة',
-            Icons.lock_reset_rounded,
-            secure: true,
-          ),
-          FormFieldSpec(
-            'تأكيد كلمة المرور',
-            Icons.verified_user_outlined,
-            secure: true,
-          ),
-        ],
-      ),
-      '/settings' => const SettingsScreen(),
-      '/notifications' => const NotificationsScreen(),
-      '/notification-preferences' => const NotificationPreferencesScreen(),
-      '/addresses' => const AddressesScreen(),
-      '/addresses-empty' => const AddressesScreen(empty: true),
-      '/add-address' => const SimpleFormScreen(
-        title: 'إضافة عنوان جديد',
-        icon: Icons.add_location_alt_rounded,
-        button: 'حفظ العنوان',
-        fields: [
-          FormFieldSpec('الاسم', Icons.person_outline_rounded),
-          FormFieldSpec('رقم الهاتف', Icons.phone_outlined, phone: true),
-          FormFieldSpec('المدينة', Icons.location_city_outlined),
-          FormFieldSpec('المنطقة', Icons.map_outlined),
-          FormFieldSpec('تفاصيل العنوان', Icons.home_outlined, multiline: true),
-        ],
-      ),
-      '/wallet' => const WalletScreen(),
-      '/wallet-topup' => const WalletTopUpScreen(),
-      '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
-      '/wallet-transactions' => const WalletTransactionsScreen(),
-      '/orders' => const OrdersScreen(),
-      '/order-details' => const OrderDetailsScreen(),
-      '/track-order' => const TrackOrderScreen(),
-      '/cancel-order' => const CancelOrderScreen(),
-      '/order-cancelled' => const GenericActionResultScreen(
-        title: 'تم إلغاء الطلب بنجاح',
-        message:
-            'تم إلغاء طلبك وسيتم استرداد المبلغ إلى محفظتك خلال الفترة المحددة.',
-      ),
-      '/rate-order' => const RateOrderScreen(),
-      '/returns' => const ReturnsScreen(),
-      '/return-request' => const ReturnRequestScreen(),
-      '/return-success' => const GenericActionResultScreen(
-        title: 'تم إرسال طلب الإرجاع',
-        message: 'رقم الطلب #RET-13842، سنراجع الطلب ونخبرك بالتحديثات.',
-      ),
-      '/refund-status' => const RefundStatusScreen(),
-      '/invoice' => const InvoiceScreen(),
-      '/support' => const SupportScreen(),
-      '/support-ticket' => const SimpleFormScreen(
-        title: 'فتح تذكرة دعم',
-        icon: Icons.confirmation_number_outlined,
-        button: 'إرسال التذكرة',
-        fields: [
-          FormFieldSpec('نوع المشكلة', Icons.category_outlined),
-          FormFieldSpec('رقم الطلب (اختياري)', Icons.receipt_outlined),
-          FormFieldSpec('عنوان المشكلة', Icons.edit_outlined),
-          FormFieldSpec(
-            'اشرح المشكلة بالتفصيل',
-            Icons.chat_bubble_outline_rounded,
-            multiline: true,
-          ),
-        ],
-      ),
-      '/support-chat' => const SupportChatScreen(),
-      '/legal' => const LegalScreen(),
-      '/delete-account' => const DeleteAccountScreen(),
+      '/cart' => const ConnectedCartScreen(),
+      '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
+      '/checkout' => const ConnectedEnhancedCheckoutScreen(),
+      '/delivery-slot' => const ConnectedEnhancedCheckoutScreen(),
+      '/delivery-preferences' => const ConnectedEnhancedCheckoutScreen(),
+      '/payment-methods' => const ConnectedPaymentMethodsScreen(),
+      '/add-card' => const ConnectedPaymentMethodsScreen(),
+      '/edit-payment' => const ConnectedPaymentMethodsScreen(),
+      '/cash-on-delivery' => const ConnectedPaymentMethodsScreen(),
+      '/bank-transfer' => const ConnectedPaymentMethodsScreen(),
+      '/order-success' => const ConnectedOrdersScreen(),
+      '/payment-success' => const ConnectedOrdersScreen(),
+      '/payment-failed' => const ConnectedEnhancedCheckoutScreen(),
+      '/wallet-pending' => const ConnectedWalletScreen(),
+      '/account' => const ConnectedAccountScreen(),
+      '/edit-profile' => const ConnectedEditProfileScreen(),
+      '/profile-avatar' => const ConnectedAvatarScreen(),
+      '/change-phone' => const ConnectedEditProfileScreen(),
+      '/change-password' => const ConnectedChangePasswordScreen(),
+      '/settings' => const ConnectedSettingsScreen(),
+      '/notifications' => const ConnectedNotificationsScreen(),
+      '/notification-preferences' => const ConnectedNotificationPreferencesScreen(),
+      '/addresses' => const ConnectedAddressesScreen(),
+      '/addresses-empty' => const ConnectedAddressesScreen(),
+      '/add-address' => const ConnectedAddressFormScreen(),
+      '/wallet' => const ConnectedWalletScreen(),
+      '/wallet-topup' => const ConnectedWalletTopUpScreen(),
+      '/wallet-topup-success' => const ConnectedWalletScreen(),
+      '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
+      '/orders' => const ConnectedOrdersScreen(),
+      '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
+      '/track-order' => const _FirstOrderActionRoute(action: _OrderAction.track),
+      '/cancel-order' => const _FirstOrderActionRoute(action: _OrderAction.cancel),
+      '/order-cancelled' => const ConnectedOrdersScreen(),
+      '/rate-order' => const _FirstOrderActionRoute(action: _OrderAction.rate),
+      '/returns' => const ConnectedReturnsScreen(),
+      '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
+      '/return-success' => const ConnectedReturnsScreen(),
+      '/refund-status' => const ConnectedReturnsScreen(),
+      '/invoice' => const _FirstInvoiceRoute(),
+      '/support' => const ConnectedSupportScreen(),
+      '/support-ticket' => const ConnectedSupportTicketScreen(),
+      '/support-chat' => const ConnectedSupportChatScreen(),
+      '/legal' => const ConnectedLegalScreen(),
+      '/delete-account' => const ConnectedDeleteAccountScreen(),
       '/offline' => const GenericActionResultScreen(
         title: 'لا يوجد اتصال بالإنترنت',
         message: 'تحقق من اتصالك وحاول مرة أخرى.',
@@ -192,53 +123,167 @@ abstract final class AppRouter {
 class _FirstProductScreen extends StatelessWidget {
   const _FirstProductScreen({this.index = 0});
   final int index;
+
   @override
-  Widget build(BuildContext context) =>
-      ProductDetailsScreen(product: AppScope.of(context).products[index]);
+  Widget build(BuildContext context) {
+    final products = AppScope.of(context).products;
+    if (products.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد منتجات',
+          message: 'لم يعرض الخادم منتجات متاحة حاليًا.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+    final safeIndex = index < 0 ? 0 : (index >= products.length ? products.length - 1 : index);
+    return ConnectedProductDetailsScreen(product: products[safeIndex]);
+  }
 }
 
 class _ReviewRoute extends StatelessWidget {
   const _ReviewRoute();
+
   @override
-  Widget build(BuildContext context) =>
-      ReviewsScreen(product: AppScope.of(context).products.first);
+  Widget build(BuildContext context) {
+    final products = AppScope.of(context).products;
+    if (products.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد منتجات',
+          message: 'لا توجد بيانات تقييم متاحة.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+    return ConnectedProductReviewsScreen(product: products.first);
+  }
 }
 
 class _AskRoute extends StatelessWidget {
   const _AskRoute();
+
   @override
-  Widget build(BuildContext context) =>
-      AskQuestionScreen(product: AppScope.of(context).products.first);
+  Widget build(BuildContext context) {
+    final products = AppScope.of(context).products;
+    if (products.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد منتجات',
+          message: 'لا يوجد منتج متاح لعرض الأسئلة.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+    return ConnectedProductQuestionsScreen(product: products.first);
+  }
 }
 
 class _FirstAuctionScreen extends StatelessWidget {
   const _FirstAuctionScreen({this.index = 0});
   final int index;
+
   @override
-  Widget build(BuildContext context) =>
-      AuctionDetailsScreen(auction: AppScope.of(context).auctions[index]);
+  Widget build(BuildContext context) {
+    final auctions = AppScope.of(context).auctions;
+    if (auctions.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد مزادات',
+          message: 'لم يعرض الخادم مزادات متاحة حاليًا.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+    final safeIndex = index < 0 ? 0 : (index >= auctions.length ? auctions.length - 1 : index);
+    return ConnectedAuctionDetailsScreen(auction: auctions[safeIndex]);
+  }
 }
 
 class _BidRoute extends StatelessWidget {
   const _BidRoute();
+
   @override
-  Widget build(BuildContext context) =>
-      BidScreen(auction: AppScope.of(context).auctions.first);
+  Widget build(BuildContext context) {
+    final app = AppScope.of(context);
+    if (app.auctions.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد مزادات',
+          message: 'لا يوجد مزاد متاح للمزايدة الآن.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+    if (!app.isAuthenticated) return const ConnectedLoginScreen();
+    return ConnectedBidScreen(auction: app.auctions.first);
+  }
 }
 
-class _AuctionResultRoute extends StatelessWidget {
-  const _AuctionResultRoute({this.kind = AuctionResultKind.success});
-  final AuctionResultKind kind;
+enum _OrderAction { details, track, cancel, rate, returnOrder }
+
+class _FirstOrderActionRoute extends StatelessWidget {
+  const _FirstOrderActionRoute({required this.action});
+  final _OrderAction action;
+
   @override
-  Widget build(BuildContext context) => AuctionResultScreen(
-    auction: AppScope.of(context).auctions.first,
-    kind: kind,
-  );
+  Widget build(BuildContext context) {
+    final id = _firstOrderId(context);
+    if (id == null) return const _NoOrderScreen();
+    return switch (action) {
+      _OrderAction.details => ConnectedOrderDetailsScreen(orderId: id),
+      _OrderAction.track => ConnectedTrackOrderScreen(orderId: id),
+      _OrderAction.cancel => ConnectedCancelOrderScreen(orderId: id),
+      _OrderAction.rate => ConnectedRateOrderScreen(orderId: id),
+      _OrderAction.returnOrder => ConnectedReturnRequestScreen(orderId: id),
+    };
+  }
 }
 
-class _ReminderRoute extends StatelessWidget {
-  const _ReminderRoute();
+class _FirstInvoiceRoute extends StatelessWidget {
+  const _FirstInvoiceRoute();
+
   @override
-  Widget build(BuildContext context) =>
-      AuctionReminderScreen(auction: AppScope.of(context).auctions.first);
+  Widget build(BuildContext context) {
+    final id = _firstOrderId(context);
+    return id == null ? const _NoOrderScreen() : ConnectedInvoiceScreen(orderId: id);
+  }
+}
+
+int? _firstOrderId(BuildContext context) {
+  final orders = AppScope.of(context).orders;
+  if (orders.isEmpty) return null;
+  final id = int.tryParse(orders.first.id) ?? 0;
+  return id > 0 ? id : null;
+}
+
+class _NoOrderScreen extends StatelessWidget {
+  const _NoOrderScreen();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد طلبات',
+          message: 'لا يوجد طلب متاح لهذه العملية.',
+          kind: ResultKind.empty,
+        ),
+      );
+}
+
+class _ServerFeatureUnavailableScreen extends StatelessWidget {
+  const _ServerFeatureUnavailableScreen({required this.title, required this.message});
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: MazraaAppBar(title: title),
+        body: ResultStateView(
+          kind: ResultKind.empty,
+          title: title,
+          message: message,
+          primaryLabel: 'العودة للمزادات',
+          onPrimary: () => Navigator.pushReplacementNamed(context, '/auctions'),
+        ),
+      );
 }

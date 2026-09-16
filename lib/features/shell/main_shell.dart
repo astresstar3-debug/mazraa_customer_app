@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../core/state/app_controller.dart';
-import '../account/presentation/account_screens.dart';
-import '../auctions/presentation/auction_screens.dart';
-import '../cart/presentation/cart_screens.dart';
+import '../account/presentation/connected_account_screen.dart';
+import '../auctions/presentation/connected_auction_screens.dart';
+import '../cart/presentation/connected_cart_screens.dart';
 import '../home/presentation/home_screen_v2.dart';
-import '../marketplace/presentation/marketplace_screens.dart';
+import '../marketplace/presentation/connected_marketplace_screens.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialIndex = 0});
@@ -18,10 +18,10 @@ class _MainShellState extends State<MainShell> {
   late int index = widget.initialIndex;
   late final pages = const [
     HomeScreen(),
-    CategoriesScreen(),
-    AuctionListScreen(embedded: true),
-    CartScreen(embedded: true),
-    AccountScreen(embedded: true),
+    ConnectedCategoriesScreen(),
+    ConnectedAuctionListScreen(embedded: true),
+    ConnectedCartScreen(embedded: true),
+    ConnectedAccountScreen(embedded: true),
   ];
   @override
   Widget build(BuildContext context) {

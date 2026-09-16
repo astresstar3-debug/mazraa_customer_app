@@ -7,17 +7,23 @@ class Product {
     required this.image,
     required this.price,
     required this.category,
+    this.variantId,
     this.oldPrice,
-    this.rating = 4.8,
-    this.reviews = 86,
+    this.rating = 0,
+    this.reviews = 0,
     this.discount,
     this.kind = ProductKind.crop,
-    this.description =
-        'منتج مختار بعناية من مزارع موثوقة، بجودة عالية وتجهيز مناسب للتوصيل.',
+    this.description = '',
+    this.inStock = true,
+    this.sales = 0,
+    this.images = const [],
   });
+
   final String id;
+  final int? variantId;
   final String name;
   final String image;
+  final List<String> images;
   final double price;
   final double? oldPrice;
   final String category;
@@ -26,6 +32,8 @@ class Product {
   final int? discount;
   final ProductKind kind;
   final String description;
+  final bool inStock;
+  final int sales;
 }
 
 enum AuctionState { live, upcoming, ended, won }
@@ -38,9 +46,11 @@ class Auction {
     required this.currentBid,
     required this.remaining,
     required this.category,
-    this.bidCount = 24,
+    this.bidCount = 0,
     this.state = AuctionState.live,
+    this.description = '',
   });
+
   final String id;
   final String title;
   final String image;
@@ -49,14 +59,20 @@ class Auction {
   final String category;
   final int bidCount;
   final AuctionState state;
+  final String description;
 }
 
 class CartLine {
-  const CartLine(this.product, this.quantity);
+  const CartLine(this.product, this.quantity, {this.cartItemId});
   final Product product;
   final int quantity;
-  CartLine copyWith({int? quantity}) =>
-      CartLine(product, quantity ?? this.quantity);
+  final int? cartItemId;
+
+  CartLine copyWith({int? quantity, int? cartItemId}) => CartLine(
+        product,
+        quantity ?? this.quantity,
+        cartItemId: cartItemId ?? this.cartItemId,
+      );
 }
 
 class AppOrder {
