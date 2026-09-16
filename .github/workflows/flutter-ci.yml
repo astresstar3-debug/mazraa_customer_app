@@ -55,13 +55,19 @@ jobs:
       - name: Analyze Dart code
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
+      - name: Build standalone installable debug APK
+        run: |
+          flutter build apk --debug --target=lib/main.dart
+          mkdir -p build/installable
+          cp build/app/outputs/flutter-apk/app-debug.apk build/installable/mazraa-app-debug.apk
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run app once on Android emulator and capture complete screenshots
+      - name: Capture screenshots and smoke-test the real app APK
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 32
@@ -72,7 +78,37 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           script: |
             flutter devices
+
+            set +e
             flutter drive --no-dds --dart-define=REFERENCE_VISUAL_TEST=true --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554
+            SCREENSHOT_EXIT=$?
+            set -e
+
+            echo "Installing the standalone APK built from lib/main.dart..."
+            adb install -r build/installable/mazraa-app-debug.apk
+            adb shell am force-stop com.example.mazraa_customer_app
+            adb logcat -c
+            adb shell monkey -p com.example.mazraa_customer_app -c android.intent.category.LAUNCHER 1
+            sleep 8
+
+            APP_PID="$(adb shell pidof com.example.mazraa_customer_app | tr -d '\r')"
+            if [ -z "$APP_PID" ]; then
+              echo "Standalone app exited during startup. Recent crash log:"
+              adb logcat -d -t 600 | grep -E "AndroidRuntime|FATAL EXCEPTION|com.example.mazraa_customer_app|flutter" || true
+              exit 1
+            fi
+
+            echo "Standalone app is still running after startup smoke test. PID=$APP_PID"
+            exit "$SCREENSHOT_EXIT"
+
+      - name: Ensure standalone APK exists
+        if: always()
+        run: |
+          if [ ! -f build/installable/mazraa-app-debug.apk ]; then
+            flutter build apk --debug --target=lib/main.dart
+            mkdir -p build/installable
+            cp build/app/outputs/flutter-apk/app-debug.apk build/installable/mazraa-app-debug.apk
+          fi
 
       - name: Package screen screenshots
         if: always()
@@ -84,13 +120,13 @@ jobs:
             echo "No screenshots were produced; skipping screenshot package."
           fi
 
-      - name: Upload debug APK produced by integration build
+      - name: Upload standalone installable debug APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mazraa-debug-apk-${{ github.run_id }}
-          path: build/app/outputs/flutter-apk/app-debug.apk
-          if-no-files-found: warn
+          name: mazraa-installable-debug-apk-${{ github.run_id }}
+          path: build/installable/mazraa-app-debug.apk
+          if-no-files-found: error
           retention-days: 7
 
       - name: Upload screen screenshots package
