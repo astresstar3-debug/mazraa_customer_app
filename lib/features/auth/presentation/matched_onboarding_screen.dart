@@ -24,7 +24,7 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
     ),
     _OnboardingData(
       title: 'شارك في المزادات بثقة',
-      message: 'زايد على الحيوانات والمنتجات الزراعية والمعدات واستمتع بتجربة آمنة وواضحة.',
+      message: 'زايد على الحيوانات والمنتجات الزراعية والمعدات ومستلزمات النحل.',
       kind: _OnboardingKind.auction,
     ),
     _OnboardingData(
@@ -51,8 +51,8 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
     if (index < pages.length - 1) {
       controller.animateToPage(
         index + 1,
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
       );
     } else {
       Navigator.pushReplacementNamed(context, '/login');
@@ -63,8 +63,8 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
     if (index > 0) {
       controller.animateToPage(
         index - 1,
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
       );
     }
   }
@@ -73,84 +73,82 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppColors.ivory,
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) => Stack(
-              children: [
-                const Positioned.fill(child: _OnboardingBackdrop()),
-                Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(22, 12, 22, 18),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: PageView.builder(
-                          controller: controller,
-                          itemCount: pages.length,
-                          onPageChanged: (value) => setState(() => index = value),
-                          itemBuilder: (context, pageIndex) => _OnboardingPage(
-                            page: pages[pageIndex],
-                            currentIndex: index,
-                            pageCount: pages.length,
-                          ),
+          child: Stack(
+            children: [
+              const Positioned.fill(child: _BotanicalBackdrop()),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 18),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: PageView.builder(
+                        controller: controller,
+                        itemCount: pages.length,
+                        onPageChanged: (value) => setState(() => index = value),
+                        itemBuilder: (context, pageIndex) => _OnboardingPage(
+                          page: pages[pageIndex],
+                          pageIndex: pageIndex,
+                          currentIndex: index,
+                          pageCount: pages.length,
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      if (index == 1)
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: SizedBox(
-                                height: 55,
-                                child: TextButton(
-                                  onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                                  child: const Text(
-                                    'تخطي',
-                                    style: TextStyle(
-                                      color: AppColors.forestDark,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (index == 1)
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: SizedBox(
+                              height: 58,
+                              child: TextButton(
+                                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.forestDark,
+                                  textStyle: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    decoration: TextDecoration.underline,
                                   ),
                                 ),
+                                child: const Text('تخطي'),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 3,
-                              child: _GradientFilledButton(
-                                label: 'التالي',
-                                onPressed: next,
-                              ),
-                            ),
-                          ],
-                        )
-                      else
-                        _GradientFilledButton(
-                          label: index == pages.length - 1 ? 'ابدأ الآن' : 'التالي',
-                          onPressed: next,
-                        ),
-                      if (index == pages.length - 1) ...[
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: previous,
-                          icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                          label: const Text('السابق'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.forestDark,
-                            textStyle: const TextStyle(fontWeight: FontWeight.w800),
                           ),
+                          const SizedBox(width: 18),
+                          Expanded(
+                            flex: 3,
+                            child: _GradientFilledButton(label: 'التالي', onPressed: next),
+                          ),
+                        ],
+                      )
+                    else
+                      _GradientFilledButton(
+                        label: index == pages.length - 1 ? 'ابدأ الآن' : 'التالي',
+                        onPressed: next,
+                      ),
+                    if (index == pages.length - 1) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: previous,
+                        icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                        label: const Text('السابق'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.forestDark,
+                          textStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       );
 }
 
-enum _OnboardingKind { tracking, auction, welcome }
+enum _OnboardingKind { welcome, auction, tracking }
 
 class _OnboardingData {
   const _OnboardingData({
@@ -167,59 +165,54 @@ class _OnboardingData {
 class _OnboardingPage extends StatelessWidget {
   const _OnboardingPage({
     required this.page,
+    required this.pageIndex,
     required this.currentIndex,
     required this.pageCount,
   });
 
   final _OnboardingData page;
+  final int pageIndex;
   final int currentIndex;
   final int pageCount;
 
   @override
   Widget build(BuildContext context) {
     final welcome = page.kind == _OnboardingKind.welcome;
-    return Column(
-      children: [
-        SizedBox(height: welcome ? 10 : 2),
-        AppLogo(size: welcome ? 92 : 58, showName: welcome),
-        SizedBox(height: welcome ? 20 : 10),
-        if (welcome) ...[
-          _OnboardingTitle(page: page, large: true),
-          const SizedBox(height: 15),
-        ],
-        Expanded(
-          child: _OnboardingIllustration(kind: page.kind),
-        ),
-        if (!welcome) ...[
-          const SizedBox(height: 14),
-          _OnboardingTitle(page: page),
-        ],
-        const SizedBox(height: 13),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            pageCount,
-            (dot) => AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: dot == currentIndex ? 10 : 9,
-              height: 9,
-              margin: const EdgeInsets.symmetric(horizontal: 6),
-              decoration: BoxDecoration(
-                color: dot == currentIndex
-                    ? AppColors.forest
-                    : const Color(0xFFE8DDC4),
-                shape: BoxShape.circle,
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final illustrationHeight = welcome
+            ? (constraints.maxHeight * .46).clamp(300.0, 430.0)
+            : (constraints.maxHeight * .55).clamp(350.0, 500.0);
+        return Column(
+          children: [
+            SizedBox(height: welcome ? 4 : 0),
+            AppLogo(size: welcome ? 118 : 72, showName: welcome),
+            SizedBox(height: welcome ? 14 : 12),
+            if (welcome) ...[
+              _TitleBlock(page: page, large: true),
+              const SizedBox(height: 12),
+            ],
+            SizedBox(
+              height: illustrationHeight,
+              width: double.infinity,
+              child: _OnboardingIllustration(kind: page.kind),
             ),
-          ),
-        ),
-      ],
+            if (!welcome) ...[
+              const SizedBox(height: 8),
+              _TitleBlock(page: page),
+            ],
+            const Spacer(),
+            _Dots(count: pageCount, active: currentIndex),
+          ],
+        );
+      },
     );
   }
 }
 
-class _OnboardingTitle extends StatelessWidget {
-  const _OnboardingTitle({required this.page, this.large = false});
+class _TitleBlock extends StatelessWidget {
+  const _TitleBlock({required this.page, this.large = false});
+
   final _OnboardingData page;
   final bool large;
 
@@ -231,23 +224,48 @@ class _OnboardingTitle extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.forestDark,
-              fontSize: large ? 30 : 27,
-              fontWeight: FontWeight.w900,
+              fontSize: large ? 30 : 29,
               height: 1.25,
+              fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 8),
           Text(
             page.message,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: AppColors.muted,
-              fontSize: 13,
+              color: Color(0xFF6F7865),
+              fontSize: 14,
               height: 1.65,
               fontWeight: FontWeight.w500,
             ),
           ),
         ],
+      );
+}
+
+class _Dots extends StatelessWidget {
+  const _Dots({required this.count, required this.active});
+
+  final int count;
+  final int active;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          count,
+          (dot) => AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 11,
+            height: 11,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: dot == active ? AppColors.forest : const Color(0xFFE5D9BC),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
       );
 }
 
@@ -260,20 +278,16 @@ class _GradientFilledButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         width: double.infinity,
-        height: 58,
+        height: 60,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.centerRight,
             end: Alignment.centerLeft,
-            colors: [Color(0xFF0C4F2D), Color(0xFF1E6B3F)],
+            colors: [Color(0xFF0A4C2B), Color(0xFF206D3F)],
           ),
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(30),
           boxShadow: const [
-            BoxShadow(
-              color: Color(0x140D4328),
-              blurRadius: 18,
-              offset: Offset(0, 7),
-            ),
+            BoxShadow(color: Color(0x140D4328), blurRadius: 18, offset: Offset(0, 7)),
           ],
         ),
         child: FilledButton(
@@ -281,26 +295,31 @@ class _GradientFilledButton extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
               PositionedDirectional(
-                start: 6,
-                child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .23)),
+                start: 8,
+                child: Icon(Icons.eco_rounded, size: 30, color: Colors.white.withValues(alpha: .20)),
               ),
               PositionedDirectional(
-                end: 6,
-                child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .18)),
+                end: 8,
+                child: Icon(Icons.eco_rounded, size: 28, color: Colors.white.withValues(alpha: .16)),
               ),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 17,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+                  ),
+                  if (label == 'ابدأ الآن') ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.eco_rounded, color: Colors.white, size: 19),
+                  ],
+                ],
               ),
             ],
           ),
@@ -314,41 +333,43 @@ class _OnboardingIllustration extends StatelessWidget {
   final _OnboardingKind kind;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) => switch (kind) {
-          _OnboardingKind.welcome => _WelcomeIllustration(height: constraints.maxHeight),
-          _OnboardingKind.auction => _AuctionIllustration(height: constraints.maxHeight),
-          _OnboardingKind.tracking => _TrackingIllustration(height: constraints.maxHeight),
-        },
-      );
+  Widget build(BuildContext context) => switch (kind) {
+        _OnboardingKind.welcome => const _WelcomeScene(),
+        _OnboardingKind.auction => const _AuctionScene(),
+        _OnboardingKind.tracking => const _TrackingScene(),
+      };
 }
 
-class _WelcomeIllustration extends StatelessWidget {
-  const _WelcomeIllustration({required this.height});
-  final double height;
+class _WelcomeScene extends StatelessWidget {
+  const _WelcomeScene();
 
   @override
   Widget build(BuildContext context) => Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
           Positioned(
-            left: 2,
-            right: 2,
-            top: 8,
-            bottom: 4,
+            left: 16,
+            right: 16,
+            top: 22,
+            bottom: 18,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(38),
+              borderRadius: BorderRadius.circular(48),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   const AppDataImage('assets/images/home/date_seedlings.png', fit: BoxFit.cover),
-                  Container(
-                    decoration: const BoxDecoration(
+                  DecoratedBox(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0x00FFF9EB), Color(0x22FFF9EB), Color(0xDFFFF9EB)],
-                        stops: [0, .62, 1],
+                        colors: [
+                          AppColors.ivory.withValues(alpha: .08),
+                          AppColors.ivory.withValues(alpha: .03),
+                          AppColors.ivory.withValues(alpha: .82),
+                        ],
+                        stops: const [0, .62, 1],
                       ),
                     ),
                   ),
@@ -357,131 +378,143 @@ class _WelcomeIllustration extends StatelessWidget {
             ),
           ),
           PositionedDirectional(
-            bottom: 23,
-            start: 18,
-            child: _RoundPhoto(source: 'assets/images/home/najdi_sheep.png', size: 102),
+            bottom: 31,
+            start: 15,
+            child: _PhotoBubble(source: 'assets/images/home/najdi_sheep.png', size: 112),
           ),
           PositionedDirectional(
-            bottom: 18,
-            end: 24,
-            child: _RoundPhoto(source: 'assets/images/home/local_calf.png', size: 116),
+            bottom: 25,
+            end: 18,
+            child: _PhotoBubble(source: 'assets/images/home/local_calf.png', size: 132),
           ),
           Positioned(
-            bottom: 5,
+            bottom: 14,
             child: Container(
-              width: 108,
-              height: 78,
+              width: 132,
+              height: 94,
               decoration: BoxDecoration(
                 color: const Color(0xFFE4C79D),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: AppColors.terracotta.withValues(alpha: .25)),
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(color: AppColors.terracotta.withValues(alpha: .22)),
+                boxShadow: const [BoxShadow(color: Color(0x16000000), blurRadius: 15, offset: Offset(0, 6))],
               ),
               alignment: Alignment.center,
-              child: const AppLogo(size: 48),
+              child: const AppLogo(size: 55),
             ),
           ),
-          const PositionedDirectional(
-            top: 16,
-            start: 5,
-            child: _LeafCluster(angle: -.4),
-          ),
-          const PositionedDirectional(
-            top: 20,
-            end: 7,
-            child: _LeafCluster(angle: .5),
-          ),
+          const PositionedDirectional(top: 0, start: -2, child: _LeafSprig(angle: -.52)),
+          const PositionedDirectional(top: 4, end: 0, child: _LeafSprig(angle: .48)),
         ],
       );
 }
 
-class _AuctionIllustration extends StatelessWidget {
-  const _AuctionIllustration({required this.height});
-  final double height;
+class _AuctionScene extends StatelessWidget {
+  const _AuctionScene();
 
   @override
   Widget build(BuildContext context) => Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
-          Container(
-            width: double.infinity,
-            height: height * .83,
-            margin: const EdgeInsets.symmetric(horizontal: 18),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4DBC8),
-              borderRadius: BorderRadius.circular(150),
+          Positioned(
+            left: 16,
+            right: 16,
+            top: 20,
+            bottom: 10,
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFCC6634), Color(0xFFF3D1B7)],
+                ),
+              ),
             ),
           ),
           Positioned(
-            left: 34,
-            right: 34,
-            top: 23,
-            bottom: 25,
+            left: 36,
+            right: 36,
+            top: 64,
+            bottom: 38,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(130),
+              borderRadius: BorderRadius.circular(42),
               child: const AppDataImage('assets/images/home/najdi_sheep.png', fit: BoxFit.cover),
             ),
           ),
           PositionedDirectional(
-            bottom: 26,
+            top: 50,
             start: 28,
             child: Container(
-              width: 82,
-              height: 82,
+              width: 72,
+              height: 105,
               decoration: BoxDecoration(
-                color: AppColors.surface,
-                shape: BoxShape.circle,
-                boxShadow: const [BoxShadow(color: Color(0x16000000), blurRadius: 12)],
-                border: Border.all(color: AppColors.border),
+                color: AppColors.forestDark,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [BoxShadow(color: Color(0x18000000), blurRadius: 12)],
               ),
-              child: const Icon(Icons.gavel_rounded, color: AppColors.forestDark, size: 42),
+              alignment: Alignment.center,
+              child: const Icon(Icons.gavel_rounded, color: Colors.white, size: 38),
             ),
           ),
           PositionedDirectional(
-            bottom: 45,
-            end: 24,
+            bottom: 28,
+            end: 28,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
+              width: 118,
+              height: 92,
               decoration: BoxDecoration(
-                color: AppColors.forest,
-                borderRadius: BorderRadius.circular(18),
+                color: const Color(0xFFB86B2B),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [BoxShadow(color: Color(0x18000000), blurRadius: 14, offset: Offset(0, 5))],
               ),
-              child: const Text(
-                'مزاد موثوق',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11),
-              ),
+              alignment: Alignment.center,
+              child: const Icon(Icons.hive_outlined, color: Color(0xFFFFE9B7), size: 50),
             ),
           ),
-          const PositionedDirectional(top: 3, start: 3, child: _LeafCluster(angle: -.5)),
-          const PositionedDirectional(bottom: 0, end: 0, child: _LeafCluster(angle: .45)),
+          PositionedDirectional(
+            bottom: 15,
+            start: 48,
+            child: Transform.rotate(
+              angle: -.35,
+              child: const Icon(Icons.gavel_rounded, color: Color(0xFF5F371F), size: 96),
+            ),
+          ),
+          const PositionedDirectional(top: 12, end: 2, child: _LeafSprig(angle: .4)),
+          const PositionedDirectional(bottom: 0, start: 0, child: _LeafSprig(angle: -.45)),
         ],
       );
 }
 
-class _TrackingIllustration extends StatelessWidget {
-  const _TrackingIllustration({required this.height});
-  final double height;
+class _TrackingScene extends StatelessWidget {
+  const _TrackingScene();
 
   @override
   Widget build(BuildContext context) => Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
           Positioned(
-            left: 2,
-            right: 2,
-            top: 4,
-            bottom: 8,
+            left: 8,
+            right: 8,
+            top: 6,
+            bottom: 10,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(36),
+              borderRadius: BorderRadius.circular(46),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   const AppDataImage('assets/images/home/date_seedlings.png', fit: BoxFit.cover),
-                  Container(
-                    decoration: const BoxDecoration(
+                  DecoratedBox(
+                    decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0x00FFF9EB), Color(0x12FFF9EB), Color(0xC8FFF9EB)],
+                        colors: [
+                          AppColors.ivory.withValues(alpha: .04),
+                          AppColors.ivory.withValues(alpha: .02),
+                          AppColors.ivory.withValues(alpha: .56),
+                        ],
                       ),
                     ),
                   ),
@@ -491,38 +524,44 @@ class _TrackingIllustration extends StatelessWidget {
           ),
           PositionedDirectional(
             bottom: 24,
-            start: 30,
+            start: 25,
             child: Container(
-              width: 118,
-              height: 88,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE5C69B),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.terracotta.withValues(alpha: .3)),
-                boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 14, offset: Offset(0, 5))],
-              ),
-              alignment: Alignment.center,
-              child: const AppLogo(size: 52),
+              width: 92,
+              height: 92,
+              decoration: const BoxDecoration(color: AppColors.forest, shape: BoxShape.circle),
+              child: const Icon(Icons.local_shipping_outlined, color: Colors.white, size: 47),
             ),
           ),
           PositionedDirectional(
-            bottom: 34,
-            end: 34,
+            bottom: 20,
+            end: 20,
             child: Container(
-              width: 74,
-              height: 74,
-              decoration: const BoxDecoration(color: AppColors.forest, shape: BoxShape.circle),
-              child: const Icon(Icons.local_shipping_outlined, color: Colors.white, size: 38),
+              width: 128,
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE5C99C),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppColors.terracotta.withValues(alpha: .28)),
+                boxShadow: const [BoxShadow(color: Color(0x17000000), blurRadius: 14, offset: Offset(0, 5))],
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AppLogo(size: 48),
+                  SizedBox(height: 3),
+                  Text('طلبك', style: TextStyle(color: AppColors.forestDark, fontWeight: FontWeight.w900)),
+                ],
+              ),
             ),
           ),
-          const PositionedDirectional(bottom: 1, start: 0, child: _LeafCluster(angle: -.45)),
-          const PositionedDirectional(bottom: 2, end: 0, child: _LeafCluster(angle: .45)),
+          const PositionedDirectional(top: -4, start: -5, child: _LeafSprig(angle: -.5)),
+          const PositionedDirectional(bottom: -4, end: -2, child: _LeafSprig(angle: .42)),
         ],
       );
 }
 
-class _RoundPhoto extends StatelessWidget {
-  const _RoundPhoto({required this.source, required this.size});
+class _PhotoBubble extends StatelessWidget {
+  const _PhotoBubble({required this.source, required this.size});
 
   final String source;
   final double size;
@@ -542,8 +581,9 @@ class _RoundPhoto extends StatelessWidget {
       );
 }
 
-class _LeafCluster extends StatelessWidget {
-  const _LeafCluster({required this.angle});
+class _LeafSprig extends StatelessWidget {
+  const _LeafSprig({required this.angle});
+
   final double angle;
 
   @override
@@ -552,44 +592,44 @@ class _LeafCluster extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.eco_rounded, size: 42, color: AppColors.forest.withValues(alpha: .45)),
-            Icon(Icons.eco_rounded, size: 30, color: AppColors.terracotta.withValues(alpha: .48)),
+            Icon(Icons.eco_rounded, size: 52, color: AppColors.forest.withValues(alpha: .46)),
+            Icon(Icons.eco_rounded, size: 34, color: AppColors.terracotta.withValues(alpha: .55)),
           ],
         ),
       );
 }
 
-class _OnboardingBackdrop extends StatelessWidget {
-  const _OnboardingBackdrop();
+class _BotanicalBackdrop extends StatelessWidget {
+  const _BotanicalBackdrop();
 
   @override
   Widget build(BuildContext context) => Stack(
         children: [
           PositionedDirectional(
-            top: 8,
-            start: -18,
+            top: 24,
+            start: -24,
             child: Transform.rotate(
               angle: -.55,
-              child: Icon(Icons.eco_rounded, size: 92, color: AppColors.forest.withValues(alpha: .08)),
+              child: Icon(Icons.eco_rounded, size: 110, color: AppColors.forest.withValues(alpha: .10)),
             ),
           ),
           PositionedDirectional(
-            top: 15,
-            end: -16,
+            top: 34,
+            end: -28,
             child: Transform.rotate(
               angle: .55,
-              child: Icon(Icons.eco_rounded, size: 88, color: AppColors.terracotta.withValues(alpha: .07)),
+              child: Icon(Icons.eco_rounded, size: 104, color: AppColors.terracotta.withValues(alpha: .08)),
             ),
           ),
           PositionedDirectional(
-            bottom: -24,
-            start: -28,
-            child: Icon(Icons.eco_rounded, size: 125, color: AppColors.forest.withValues(alpha: .10)),
+            bottom: -34,
+            start: -35,
+            child: Icon(Icons.eco_rounded, size: 150, color: AppColors.forest.withValues(alpha: .13)),
           ),
           PositionedDirectional(
-            bottom: -30,
-            end: -35,
-            child: Icon(Icons.eco_rounded, size: 136, color: AppColors.terracotta.withValues(alpha: .08)),
+            bottom: -40,
+            end: -42,
+            child: Icon(Icons.eco_rounded, size: 160, color: AppColors.terracotta.withValues(alpha: .10)),
           ),
         ],
       );
