@@ -175,6 +175,17 @@ class _HomeScreenState extends State<HomeScreen> {
             _AuctionSection(auctions: auctions),
             if (featuredCoupon != null) ...[
               const SizedBox(height: 16),
+              SectionHeader(
+                title: 'الكوبونات',
+                icon: Icons.local_activity_outlined,
+                onAll: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ConnectedCouponsScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               _HomeCouponBanner(coupon: featuredCoupon!),
             ],
             const SizedBox(height: 16),
