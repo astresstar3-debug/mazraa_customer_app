@@ -3,33 +3,69 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:mazraa_customer_app/core/state/app_controller.dart';
 import 'package:mazraa_customer_app/main.dart' as app;
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<void> settleNetworkScreen(WidgetTester tester) async {
-    await tester.pump();
-    await tester.pump(const Duration(seconds: 4));
+  bool hasLoadingIndicators() =>
+      find.byType(CircularProgressIndicator).evaluate().isNotEmpty ||
+      find.byType(LinearProgressIndicator).evaluate().isNotEmpty ||
+      find.byType(RefreshProgressIndicator).evaluate().isNotEmpty;
+
+  bool appIsLoading(WidgetTester tester) {
+    final materialApp = find.byType(MaterialApp);
+    if (materialApp.evaluate().isEmpty) return true;
+    final context = tester.element(materialApp.first);
+    return AppScope.of(context).isLoading;
   }
 
-  Future<void> waitForLoadingToFinish(
+  Future<void> waitUntilScreenReady(
     WidgetTester tester, {
-    Duration timeout = const Duration(seconds: 14),
+    required String screenName,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
-    final end = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(end) &&
-        find.byType(CircularProgressIndicator).evaluate().isNotEmpty) {
-      await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    final deadline = DateTime.now().add(timeout);
+    var stableChecks = 0;
+
+    while (DateTime.now().isBefore(deadline)) {
+      final loading = appIsLoading(tester) || hasLoadingIndicators();
+
+      if (!loading) {
+        stableChecks++;
+        if (stableChecks >= 3) {
+          // Give network images and the final layout a little extra time to settle.
+          await tester.pump(const Duration(seconds: 2));
+
+          if (!appIsLoading(tester) && !hasLoadingIndicators()) {
+            return;
+          }
+          stableChecks = 0;
+        }
+      } else {
+        stableChecks = 0;
+      }
+
+      await tester.pump(const Duration(milliseconds: 500));
     }
+
+    throw TestFailure(
+      'Timed out waiting for $screenName to finish loading. '
+      'Screenshot was intentionally not captured while loading was still visible.',
+    );
   }
 
   Future<void> capture(WidgetTester tester, String name) async {
-    await settleNetworkScreen(tester);
+    await waitUntilScreenReady(tester, screenName: name);
+
     final exception = tester.takeException();
     if (exception != null) {
       throw TestFailure('Unhandled UI exception on $name: $exception');
     }
+
     await binding.takeScreenshot(name);
   }
 
@@ -68,14 +104,12 @@ void main() {
     }
 
     await openRoute(tester, '/coupon');
-    await waitForLoadingToFinish(tester);
     await capture(tester, '11-coupons');
 
     final couponDetailArrow = find.byIcon(Icons.arrow_back_rounded);
     if (couponDetailArrow.evaluate().isNotEmpty) {
       await tester.tap(couponDetailArrow.last);
       await tester.pump();
-      await waitForLoadingToFinish(tester);
       await capture(tester, '11b-coupon-detail');
     }
 
