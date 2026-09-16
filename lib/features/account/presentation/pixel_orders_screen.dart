@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/reference/reference_demo_data.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
-import 'connected_account_data_screens.dart';
+import 'connected_customer_service_screens.dart';
 
 class PixelAwareOrdersScreen extends StatelessWidget {
   const PixelAwareOrdersScreen({super.key});
