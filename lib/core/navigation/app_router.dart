@@ -10,6 +10,7 @@ import '../../features/account/presentation/connected_server_account_extras.dart
 import '../../features/account/presentation/matched_account_extras.dart';
 import '../../features/account/presentation/matched_account_screen.dart';
 import '../../features/account/presentation/matched_order_return_screens.dart';
+import '../../features/account/presentation/pixel_orders_screen.dart';
 import '../../features/auctions/presentation/reference_auction_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
@@ -33,6 +34,8 @@ import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../reference/reference_demo_data.dart';
 import '../state/app_controller.dart';
+
+const bool _referenceVisual = bool.fromEnvironment('REFERENCE_VISUAL_TEST');
 
 abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -105,7 +108,7 @@ abstract final class AppRouter {
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
       '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
       '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
-      '/orders' => const ConnectedOrdersScreen(),
+      '/orders' => const PixelAwareOrdersScreen(),
       '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
       '/track-order' => const _FirstOrderActionRoute(action: _OrderAction.track),
       '/cancel-order' => const _FirstOrderActionRoute(action: _OrderAction.cancel),
@@ -208,6 +211,7 @@ class _FirstInvoiceRoute extends StatelessWidget {
 }
 
 int? _firstOrderId(BuildContext context) {
+  if (_referenceVisual) return null;
   final orders = AppScope.of(context).orders;
   if (orders.isEmpty) return null;
   final id = int.tryParse(orders.first.id) ?? 0;
