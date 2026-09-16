@@ -17,9 +17,11 @@ import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
+import '../../features/cart/presentation/matched_cart_screens.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
 import '../../features/marketplace/presentation/matched_product_screens.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
+import '../../features/marketplace/presentation/reference_nav_wrappers.dart';
 import '../../features/marketplace/presentation/reference_product_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
@@ -38,8 +40,8 @@ abstract final class AppRouter {
       '/otp' => const ConnectedPhoneVerificationScreen(),
       '/location-permission' => const LocationPermissionScreen(),
       '/location' => const LocationScreen(),
-      '/categories' => const MatchedCategoriesScreen(),
-      '/search' => const MatchedSearchScreen(),
+      '/categories' => const FinalCategoriesScreen(),
+      '/search' => const FinalSearchScreen(),
       '/search-results' => const ReferenceSearchResultsScreen(),
       '/search-empty' => const MatchedEmptySearchScreen(),
       '/products' => const ReferenceProductListScreen(),
@@ -52,9 +54,9 @@ abstract final class AppRouter {
       '/product-feed' => const MatchedFeedProductScreen(),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
-      '/favorites' => const MatchedFavoritesScreen(),
-      '/favorites-empty' => const MatchedFavoritesScreen(empty: true),
-      '/favorites-plant-empty' => const MatchedFavoritesScreen(plantEmpty: true),
+      '/favorites' => const FinalFavoritesScreen(),
+      '/favorites-empty' => const FinalFavoritesScreen(empty: true),
+      '/favorites-plant-empty' => const FinalFavoritesScreen(plantEmpty: true),
       '/auctions' => const ReferenceAuctionListScreen(),
       '/auction-filter' => const ReferenceAuctionFilterScreen(),
       '/auction-details' => ReferenceAuctionDetailsScreen(auction: ReferenceDemoData.auctions.first),
@@ -68,9 +70,9 @@ abstract final class AppRouter {
       '/bid-history' => const ReferenceMyAuctionsScreen(history: true),
       '/auction-reminder' => const ReferenceAuctionReminderScreen(),
       '/guarantee-details' => const ReferenceGuaranteeScreen(),
-      '/cart' => const ConnectedCartScreen(),
-      '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
-      '/checkout' => const ConnectedEnhancedCheckoutScreen(),
+      '/cart' => const MatchedCartScreen(),
+      '/cart-empty' => const MatchedCartScreen(forceEmpty: true),
+      '/checkout' => const MatchedCheckoutScreen(),
       '/delivery-slot' => const DeliverySlotScreen(),
       '/delivery-preferences' => const DeliveryPreferencesScreen(),
       '/payment-methods' => const PaymentMethodsScreen(),
