@@ -22,8 +22,8 @@ class _ConnectedAccountScreenState extends State<ConnectedAccountScreen> {
     return AccountRepository(app.client).fetchProfile();
   }
 
-  Future<void> _openProfile() async {
-    await Navigator.pushNamed(context, '/edit-profile');
+  Future<void> _openAndRefresh(String route) async {
+    await Navigator.pushNamed(context, route);
     if (!mounted) return;
     setState(() => _profileFuture = _loadProfile());
   }
@@ -94,7 +94,26 @@ class _ConnectedAccountScreenState extends State<ConnectedAccountScreen> {
                 return AppSurfaceCard(
                   child: Row(
                     children: [
-                      _ProfileAvatar(profile: profile),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(40),
+                        onTap: () => _openAndRefresh('/profile-avatar'),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            _ProfileAvatar(profile: profile),
+                            const PositionedDirectional(
+                              end: -4,
+                              bottom: -4,
+                              child: CircleAvatar(
+                                radius: 13,
+                                backgroundColor: AppColors.forest,
+                                child: Icon(Icons.camera_alt_outlined,
+                                    size: 14, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -153,7 +172,14 @@ class _ConnectedAccountScreenState extends State<ConnectedAccountScreen> {
             SettingsTile(
               icon: Icons.edit_outlined,
               title: 'تعديل البيانات',
-              onTap: _openProfile,
+              onTap: () => _openAndRefresh('/edit-profile'),
+            ),
+            const SizedBox(height: 8),
+            SettingsTile(
+              icon: Icons.photo_camera_back_outlined,
+              title: 'صورة الحساب',
+              subtitle: 'اختيار صورة ورفعها إلى الخادم',
+              onTap: () => _openAndRefresh('/profile-avatar'),
             ),
             const SizedBox(height: 8),
             SettingsTile(
@@ -199,12 +225,11 @@ class _ProfileAvatar extends StatelessWidget {
     final image = ApiConfig.resolveMediaUrl(profile?.profileImageUrl);
     if (image.isNotEmpty) {
       return ClipOval(
-        child: Image.asset(
+        child: AppDataImage(
           image,
           width: 72,
           height: 72,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => const _FallbackAvatar(),
         ),
       );
     }
@@ -214,6 +239,7 @@ class _ProfileAvatar extends StatelessWidget {
 
 class _FallbackAvatar extends StatelessWidget {
   const _FallbackAvatar();
+
   @override
   Widget build(BuildContext context) => const CircleAvatar(
         radius: 36,
@@ -240,7 +266,8 @@ class _Shortcut extends StatelessWidget {
               children: [
                 Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
                 const SizedBox(height: 6),
-                Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                Text(label,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
