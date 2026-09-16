@@ -18,6 +18,7 @@ import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
+import '../../features/marketplace/presentation/matched_product_screens.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
 import '../../features/marketplace/presentation/reference_product_screens.dart';
 import '../../features/shell/main_shell.dart';
@@ -46,9 +47,9 @@ abstract final class AppRouter {
       '/offers' => const ReferenceOffersScreen(),
       '/product-filter' => const MatchedProductFilterScreen(),
       '/coupon' => const ConnectedCouponsScreen(),
-      '/product-details' => const _FirstProductScreen(),
-      '/product-medicine' => const _FirstProductScreen(index: 5),
-      '/product-feed' => const _FirstProductScreen(index: 2),
+      '/product-details' => const MatchedFirstProductScreen(),
+      '/product-medicine' => const MatchedMedicineProductScreen(),
+      '/product-feed' => const MatchedFeedProductScreen(),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
       '/favorites' => const MatchedFavoritesScreen(),
@@ -120,18 +121,6 @@ abstract final class AppRouter {
       _ => const MainShell(),
     };
     return MaterialPageRoute(settings: settings, builder: (_) => page);
-  }
-}
-
-class _FirstProductScreen extends StatelessWidget {
-  const _FirstProductScreen({this.index = 0});
-  final int index;
-  @override
-  Widget build(BuildContext context) {
-    final products = AppScope.of(context).products;
-    if (products.isEmpty) return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لم يعرض الخادم منتجات متاحة حاليًا.', kind: ResultKind.empty));
-    final safeIndex = index < 0 ? 0 : (index >= products.length ? products.length - 1 : index);
-    return ReferenceProductDetailsScreen(product: products[safeIndex]);
   }
 }
 
