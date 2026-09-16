@@ -16,9 +16,9 @@ import '../../features/auth/presentation/connected_recovery_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
+import '../../features/marketplace/presentation/connected_favorites_screen.dart';
 import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
 import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
-import '../../features/marketplace/presentation/marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../state/app_controller.dart';
@@ -45,8 +45,8 @@ abstract final class AppRouter {
       '/product-feed' => const _FirstProductScreen(index: 3),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
-      '/favorites' => const FavoritesScreen(),
-      '/favorites-empty' => const FavoritesScreen(empty: true),
+      '/favorites' => const ConnectedFavoritesScreen(),
+      '/favorites-empty' => const ConnectedFavoritesScreen(forceEmpty: true),
       '/auctions' => const ConnectedAuctionListScreen(),
       '/auction-details' => const _FirstAuctionScreen(),
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
