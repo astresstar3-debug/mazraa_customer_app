@@ -18,11 +18,12 @@ class _MainShellState extends State<MainShell> {
   late int index = widget.initialIndex;
   late final pages = const [
     HomeScreen(),
-    ConnectedCategoriesScreen(),
+    ConnectedProductListScreen(),
     ConnectedAuctionListScreen(embedded: true),
     ConnectedCartScreen(embedded: true),
     ConnectedAccountScreen(embedded: true),
   ];
+
   @override
   Widget build(BuildContext context) {
     final count = AppScope.of(context).cartCount;
@@ -40,7 +41,7 @@ class _MainShellState extends State<MainShell> {
           const NavigationDestination(
             icon: Icon(Icons.grid_view_outlined),
             selectedIcon: Icon(Icons.grid_view_rounded),
-            label: 'الأقسام',
+            label: 'المنتجات',
           ),
           const NavigationDestination(
             icon: Icon(Icons.gavel_outlined),
