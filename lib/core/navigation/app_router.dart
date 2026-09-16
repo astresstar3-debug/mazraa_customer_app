@@ -21,6 +21,7 @@ import '../../features/auth/presentation/connected_phone_verification_screen.dar
 import '../../features/auth/presentation/connected_recovery_screens.dart';
 import '../../features/auth/presentation/matched_auth_location_screens.dart';
 import '../../features/auth/presentation/matched_onboarding_screen.dart';
+import '../../features/auth/presentation/reference_phone_verification_screen.dart';
 import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
@@ -49,7 +50,9 @@ abstract final class AppRouter {
       '/register' => const ConnectedRegisterScreen(),
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
       '/reset-password' => const ConnectedResetPasswordScreen(),
-      '/otp' => const MatchedPhoneVerificationScreen(),
+      '/otp' => _referenceVisual
+          ? const ReferencePhoneVerificationScreen()
+          : const ConnectedPhoneVerificationScreen(),
       '/location-permission' => const MatchedLocationPermissionScreen(),
       '/location' => const MatchedLocationPickerScreen(),
       '/categories' => const FinalCategoriesScreen(),
