@@ -78,6 +78,25 @@ class Coupon {
     );
   }
 
+  /// Stable visual fallback used while the test backend does not provide a
+  /// coupon that matches the approved reference design.
+  factory Coupon.referenceWelcome() => Coupon(
+        id: -100,
+        code: 'HA10',
+        name: 'كوبون خصم خاص لك',
+        description: 'احصل على خصم 10% على جميع المنتجات',
+        discountType: 1,
+        discountValue: 10,
+        minimumOrderAmount: 0,
+        maximumDiscountAmount: 0,
+        usageLimit: 0,
+        usedCount: 0,
+        validFrom: null,
+        validTo: null,
+        status: 1,
+        imageUrl: '',
+      );
+
   bool get isPercentage => discountType == 1;
 
   String get discountLabel => isPercentage
