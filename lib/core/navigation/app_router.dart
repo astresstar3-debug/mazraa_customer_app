@@ -16,6 +16,7 @@ import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
 import '../../features/auth/presentation/connected_recovery_screens.dart';
 import '../../features/auth/presentation/matched_auth_location_screens.dart';
+import '../../features/auth/presentation/matched_onboarding_screen.dart';
 import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
@@ -36,7 +37,7 @@ abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
       '/' => const MainShell(),
-      '/onboarding' => const OnboardingScreen(),
+      '/onboarding' => const MatchedOnboardingScreen(),
       '/login' => const ConnectedLoginScreen(),
       '/register' => const ConnectedRegisterScreen(),
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
