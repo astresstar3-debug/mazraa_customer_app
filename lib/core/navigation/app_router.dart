@@ -12,6 +12,7 @@ import '../../features/account/presentation/matched_account_screen.dart';
 import '../../features/account/presentation/matched_order_return_screens.dart';
 import '../../features/account/presentation/pixel_account_state_screens.dart';
 import '../../features/account/presentation/pixel_orders_screen.dart';
+import '../../features/auctions/presentation/pixel_auction_reference_variants.dart';
 import '../../features/auctions/presentation/pixel_auction_screens.dart';
 import '../../features/auctions/presentation/pixel_auction_state_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
@@ -71,12 +72,29 @@ abstract final class AppRouter {
       '/auctions' => const PixelAuctionListScreen(),
       '/auction-filter' => const PixelAuctionFilterScreen(),
       '/auction-details' => const PixelAuctionDetailsScreen(),
+      '/auction-details-crop' => _referenceVisual
+          ? const PixelAuctionReferenceVariantScreen(
+              variant: PixelAuctionReferenceVariant.crop,
+            )
+          : const PixelAuctionDetailsScreen(),
+      '/auction-details-equipment' => _referenceVisual
+          ? const PixelAuctionReferenceVariantScreen(
+              variant: PixelAuctionReferenceVariant.equipment,
+            )
+          : const PixelAuctionDetailsScreen(),
       '/auction-gallery' => const PixelAuctionDetailsScreen(galleryMode: true),
       '/auction-bid' => const PixelBidScreen(),
       '/auction-bid-confirm' => const PixelBidConfirmScreen(),
-      '/auction-success' => const PixelAuctionStateResultScreen(kind: PixelAuctionStateResultKind.success),
-      '/auction-won' => const PixelAuctionStateResultScreen(kind: PixelAuctionStateResultKind.won),
-      '/auction-ended' => const PixelAuctionStateResultScreen(kind: PixelAuctionStateResultKind.ended),
+      '/auction-settlement' => const PixelAuctionSettlementScreen(),
+      '/auction-success' => const PixelAuctionStateResultScreen(
+          kind: PixelAuctionStateResultKind.success,
+        ),
+      '/auction-won' => const PixelAuctionStateResultScreen(
+          kind: PixelAuctionStateResultKind.won,
+        ),
+      '/auction-ended' => const PixelAuctionStateResultScreen(
+          kind: PixelAuctionStateResultKind.ended,
+        ),
       '/my-auctions' => const PixelMyAuctionsScreen(),
       '/bid-history' => const PixelMyAuctionsScreen(history: true),
       '/auction-reminder' => const PixelAuctionReminderV2Screen(),
