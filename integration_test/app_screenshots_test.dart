@@ -73,7 +73,6 @@ void main() {
           if (!settled.isLoading &&
               !settled.client.hasPendingRequests &&
               !hasIndeterminateLoadingIndicators()) {
-            // Give decoded images and final text/layout one last paint cycle.
             await tester.pump(const Duration(seconds: 1));
             final finalException = tester.takeException();
             if (finalException != null) {
@@ -136,6 +135,22 @@ void main() {
     }
   }
 
+  Future<void> captureOnboardingPages(WidgetTester tester) async {
+    await openRoute(tester, '/onboarding');
+    await capture(tester, 'onboarding-1');
+
+    final nextButton = find.widgetWithText(FilledButton, 'التالي');
+    expect(nextButton, findsOneWidget);
+    await tester.tap(nextButton);
+    await tester.pump(const Duration(milliseconds: 400));
+    await capture(tester, 'onboarding-2');
+
+    expect(nextButton, findsOneWidget);
+    await tester.tap(nextButton);
+    await tester.pump(const Duration(milliseconds: 400));
+    await capture(tester, 'onboarding-3');
+  }
+
   Future<void> loginTestAccount(WidgetTester tester) async {
     await openRoute(tester, '/login');
     await capture(tester, 'auth-login');
@@ -173,10 +188,9 @@ void main() {
       await binding.convertFlutterSurfaceToImage();
     }
 
-    // Public/reference flows first.
     await capture(tester, 'home-public');
+    await captureOnboardingPages(tester);
     await captureRoutes(tester, const {
-      '/onboarding': 'onboarding',
       '/register': 'auth-register',
       '/forgot-password': 'auth-forgot-password',
       '/reset-password': 'auth-reset-password',
@@ -185,7 +199,6 @@ void main() {
       '/location': 'location-picker',
     });
 
-    // Continue the same emulator/app process using the disposable test account.
     await loginTestAccount(tester);
     await openRoute(tester, '/');
     await capture(
@@ -194,7 +207,6 @@ void main() {
       timeout: const Duration(seconds: 70),
     );
 
-    // Marketplace and product flows.
     await captureRoutes(tester, const {
       '/categories': 'market-categories',
       '/search': 'market-search',
@@ -215,7 +227,6 @@ void main() {
       '/favorites-plant-empty': 'favorites-plant-empty',
     });
 
-    // Auctions, including UI-only reference states when the backend has no endpoint yet.
     await captureRoutes(tester, const {
       '/auctions': 'auctions-list',
       '/auction-filter': 'auction-filter',
@@ -232,7 +243,6 @@ void main() {
       '/guarantee-details': 'auction-guarantee',
     });
 
-    // Cart, checkout and payment states.
     await captureRoutes(tester, const {
       '/cart': 'cart',
       '/cart-empty': 'cart-empty',
@@ -250,7 +260,6 @@ void main() {
       '/wallet-pending': 'wallet-pending',
     });
 
-    // Account, addresses, wallet, orders, returns and support.
     await captureRoutes(tester, const {
       '/account': 'account',
       '/edit-profile': 'account-edit-profile',
