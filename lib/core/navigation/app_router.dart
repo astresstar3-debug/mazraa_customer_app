@@ -7,12 +7,14 @@ import '../../features/account/presentation/connected_customer_service_screens.d
 import '../../features/account/presentation/connected_delete_account_screen.dart';
 import '../../features/account/presentation/connected_server_account_extras.dart';
 import '../../features/account/presentation/connected_support_chat_screen.dart';
+import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auctions/presentation/connected_auction_screens.dart';
 import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
 import '../../features/auth/presentation/connected_recovery_screens.dart';
+import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
@@ -21,6 +23,7 @@ import '../../features/marketplace/presentation/connected_marketplace_screens.da
 import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
+import '../reference/reference_demo_data.dart';
 import '../state/app_controller.dart';
 
 abstract final class AppRouter {
@@ -33,8 +36,8 @@ abstract final class AppRouter {
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
       '/reset-password' => const ConnectedResetPasswordScreen(),
       '/otp' => const ConnectedPhoneVerificationScreen(),
-      '/location-permission' => const ConnectedAddressesScreen(),
-      '/location' => const ConnectedAddressesScreen(),
+      '/location-permission' => const LocationPermissionScreen(),
+      '/location' => const LocationScreen(),
       '/categories' => const ConnectedCategoriesScreen(),
       '/search' => const ConnectedSearchScreen(),
       '/products' => const ConnectedProductListScreen(),
@@ -51,33 +54,33 @@ abstract final class AppRouter {
       '/auction-details' => const _FirstAuctionScreen(),
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
       '/auction-bid' => const _BidRoute(),
-      '/auction-success' => const _FirstAuctionScreen(),
-      '/auction-won' => const ConnectedMyAuctionsScreen(),
-      '/auction-ended' => const ConnectedMyAuctionsScreen(),
-      '/my-auctions' => const ConnectedMyAuctionsScreen(),
-      '/bid-history' => const ConnectedMyAuctionsScreen(historyOnly: true),
-      '/auction-reminder' => const _ServerFeatureUnavailableScreen(
-        title: 'تذكير المزاد',
-        message: 'لا يوجد في نسخة السيرفر الحالية endpoint لحفظ تذكيرات المزادات، لذلك لن يعرض التطبيق نجاحًا محليًا وهميًا.',
-      ),
-      '/guarantee-details' => const _ServerFeatureUnavailableScreen(
-        title: 'ضمان المزاد',
-        message: 'لا يوجد في نسخة السيرفر الحالية endpoint مستقل لضمان المزاد. لن يعرض التطبيق مبلغ ضمان تجريبيًا.',
-      ),
+      '/auction-success' => const _ReferenceAuctionResultRoute(
+          kind: AuctionResultKind.success,
+        ),
+      '/auction-won' => const _ReferenceAuctionResultRoute(
+          kind: AuctionResultKind.won,
+        ),
+      '/auction-ended' => const _ReferenceAuctionResultRoute(
+          kind: AuctionResultKind.ended,
+        ),
+      '/my-auctions' => const MyAuctionsScreen(),
+      '/bid-history' => const MyAuctionsScreen(history: true),
+      '/auction-reminder' => const _ReferenceAuctionReminderRoute(),
+      '/guarantee-details' => const GuaranteeDetailsScreen(),
       '/cart' => const ConnectedCartScreen(),
       '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
       '/checkout' => const ConnectedEnhancedCheckoutScreen(),
-      '/delivery-slot' => const ConnectedEnhancedCheckoutScreen(),
-      '/delivery-preferences' => const ConnectedEnhancedCheckoutScreen(),
-      '/payment-methods' => const ConnectedPaymentMethodsScreen(),
-      '/add-card' => const ConnectedPaymentMethodsScreen(),
-      '/edit-payment' => const ConnectedPaymentMethodsScreen(),
-      '/cash-on-delivery' => const ConnectedPaymentMethodsScreen(),
-      '/bank-transfer' => const ConnectedPaymentMethodsScreen(),
-      '/order-success' => const ConnectedOrdersScreen(),
-      '/payment-success' => const ConnectedOrdersScreen(),
-      '/payment-failed' => const ConnectedEnhancedCheckoutScreen(),
-      '/wallet-pending' => const ConnectedWalletScreen(),
+      '/delivery-slot' => const DeliverySlotScreen(),
+      '/delivery-preferences' => const DeliveryPreferencesScreen(),
+      '/payment-methods' => const PaymentMethodsScreen(),
+      '/add-card' => const AddCardScreen(),
+      '/edit-payment' => const PaymentMethodsScreen(),
+      '/cash-on-delivery' => const CashOnDeliveryScreen(),
+      '/bank-transfer' => const BankTransferScreen(),
+      '/order-success' => const OrderSuccessScreen(),
+      '/payment-success' => const PaymentResultScreen(success: true),
+      '/payment-failed' => const PaymentResultScreen(success: false),
+      '/wallet-pending' => const WalletPendingScreen(),
       '/account' => const ConnectedAccountScreen(),
       '/edit-profile' => const ConnectedEditProfileScreen(),
       '/profile-avatar' => const ConnectedAvatarScreen(),
@@ -91,7 +94,7 @@ abstract final class AppRouter {
       '/add-address' => const ConnectedAddressFormScreen(),
       '/wallet' => const ConnectedWalletScreen(),
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
-      '/wallet-topup-success' => const ConnectedWalletScreen(),
+      '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
       '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
       '/orders' => const ConnectedOrdersScreen(),
       '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
@@ -220,6 +223,26 @@ class _BidRoute extends StatelessWidget {
   }
 }
 
+class _ReferenceAuctionResultRoute extends StatelessWidget {
+  const _ReferenceAuctionResultRoute({required this.kind});
+  final AuctionResultKind kind;
+
+  @override
+  Widget build(BuildContext context) => AuctionResultScreen(
+        auction: ReferenceDemoData.auctions.first,
+        kind: kind,
+      );
+}
+
+class _ReferenceAuctionReminderRoute extends StatelessWidget {
+  const _ReferenceAuctionReminderRoute();
+
+  @override
+  Widget build(BuildContext context) => AuctionReminderScreen(
+        auction: ReferenceDemoData.auctions.first,
+      );
+}
+
 enum _OrderAction { details, track, cancel, rate, returnOrder }
 
 class _FirstOrderActionRoute extends StatelessWidget {
@@ -266,24 +289,6 @@ class _NoOrderScreen extends StatelessWidget {
           title: 'لا توجد طلبات',
           message: 'لا يوجد طلب متاح لهذه العملية.',
           kind: ResultKind.empty,
-        ),
-      );
-}
-
-class _ServerFeatureUnavailableScreen extends StatelessWidget {
-  const _ServerFeatureUnavailableScreen({required this.title, required this.message});
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: MazraaAppBar(title: title),
-        body: ResultStateView(
-          kind: ResultKind.empty,
-          title: title,
-          message: message,
-          primaryLabel: 'العودة للمزادات',
-          onPrimary: () => Navigator.pushReplacementNamed(context, '/auctions'),
         ),
       );
 }
