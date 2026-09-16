@@ -5,14 +5,17 @@ import '../../features/account/presentation/connected_account_data_screens.dart'
 import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/connected_customer_service_screens.dart';
 import '../../features/account/presentation/connected_delete_account_screen.dart';
+import '../../features/account/presentation/connected_server_account_extras.dart';
 import '../../features/account/presentation/connected_support_chat_screen.dart';
-import '../../features/account/presentation/misc_screens.dart';
 import '../../features/auctions/presentation/connected_auction_screens.dart';
 import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
+import '../../features/auth/presentation/connected_phone_verification_screen.dart';
 import '../../features/auth/presentation/connected_recovery_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
+import '../../features/cart/presentation/connected_coupons_screen.dart';
+import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
 import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
 import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
 import '../../features/marketplace/presentation/marketplace_screens.dart';
@@ -29,14 +32,14 @@ abstract final class AppRouter {
       '/register' => const ConnectedRegisterScreen(),
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
       '/reset-password' => const ConnectedResetPasswordScreen(),
-      '/otp' => const ConnectedResetPasswordScreen(),
+      '/otp' => const ConnectedPhoneVerificationScreen(),
       '/location-permission' => const ConnectedAddressesScreen(),
       '/location' => const ConnectedAddressesScreen(),
       '/categories' => const ConnectedCategoriesScreen(),
       '/search' => const ConnectedSearchScreen(),
       '/products' => const ConnectedProductListScreen(),
       '/offers' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
-      '/coupon' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
+      '/coupon' => const ConnectedCouponsScreen(),
       '/product-details' => const _FirstProductScreen(),
       '/product-medicine' => const _FirstProductScreen(index: 7),
       '/product-feed' => const _FirstProductScreen(index: 3),
@@ -63,9 +66,9 @@ abstract final class AppRouter {
       ),
       '/cart' => const ConnectedCartScreen(),
       '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
-      '/checkout' => const ConnectedCheckoutScreen(),
-      '/delivery-slot' => const ConnectedCheckoutScreen(),
-      '/delivery-preferences' => const ConnectedCheckoutScreen(),
+      '/checkout' => const ConnectedEnhancedCheckoutScreen(),
+      '/delivery-slot' => const ConnectedEnhancedCheckoutScreen(),
+      '/delivery-preferences' => const ConnectedEnhancedCheckoutScreen(),
       '/payment-methods' => const ConnectedPaymentMethodsScreen(),
       '/add-card' => const ConnectedPaymentMethodsScreen(),
       '/edit-payment' => const ConnectedPaymentMethodsScreen(),
@@ -73,10 +76,11 @@ abstract final class AppRouter {
       '/bank-transfer' => const ConnectedPaymentMethodsScreen(),
       '/order-success' => const ConnectedOrdersScreen(),
       '/payment-success' => const ConnectedOrdersScreen(),
-      '/payment-failed' => const ConnectedCheckoutScreen(),
+      '/payment-failed' => const ConnectedEnhancedCheckoutScreen(),
       '/wallet-pending' => const ConnectedWalletScreen(),
       '/account' => const ConnectedAccountScreen(),
       '/edit-profile' => const ConnectedEditProfileScreen(),
+      '/profile-avatar' => const ConnectedAvatarScreen(),
       '/change-phone' => const ConnectedEditProfileScreen(),
       '/change-password' => const ConnectedChangePasswordScreen(),
       '/settings' => const ConnectedSettingsScreen(),
@@ -99,11 +103,11 @@ abstract final class AppRouter {
       '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
       '/return-success' => const ConnectedReturnsScreen(),
       '/refund-status' => const ConnectedReturnsScreen(),
-      '/invoice' => const _FirstOrderActionRoute(action: _OrderAction.details),
+      '/invoice' => const _FirstInvoiceRoute(),
       '/support' => const ConnectedSupportScreen(),
       '/support-ticket' => const ConnectedSupportTicketScreen(),
       '/support-chat' => const ConnectedSupportChatScreen(),
-      '/legal' => const LegalScreen(),
+      '/legal' => const ConnectedLegalScreen(),
       '/delete-account' => const ConnectedDeleteAccountScreen(),
       '/offline' => const GenericActionResultScreen(
         title: 'لا يوجد اتصال بالإنترنت',
@@ -224,26 +228,8 @@ class _FirstOrderActionRoute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orders = AppScope.of(context).orders;
-    if (orders.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد طلبات',
-          message: 'لا يوجد طلب متاح لهذه العملية.',
-          kind: ResultKind.empty,
-        ),
-      );
-    }
-    final id = int.tryParse(orders.first.id) ?? 0;
-    if (id <= 0) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'تعذر فتح الطلب',
-          message: 'رقم الطلب غير صالح.',
-          kind: ResultKind.error,
-        ),
-      );
-    }
+    final id = _firstOrderId(context);
+    if (id == null) return const _NoOrderScreen();
     return switch (action) {
       _OrderAction.details => ConnectedOrderDetailsScreen(orderId: id),
       _OrderAction.track => ConnectedTrackOrderScreen(orderId: id),
@@ -252,6 +238,36 @@ class _FirstOrderActionRoute extends StatelessWidget {
       _OrderAction.returnOrder => ConnectedReturnRequestScreen(orderId: id),
     };
   }
+}
+
+class _FirstInvoiceRoute extends StatelessWidget {
+  const _FirstInvoiceRoute();
+
+  @override
+  Widget build(BuildContext context) {
+    final id = _firstOrderId(context);
+    return id == null ? const _NoOrderScreen() : ConnectedInvoiceScreen(orderId: id);
+  }
+}
+
+int? _firstOrderId(BuildContext context) {
+  final orders = AppScope.of(context).orders;
+  if (orders.isEmpty) return null;
+  final id = int.tryParse(orders.first.id) ?? 0;
+  return id > 0 ? id : null;
+}
+
+class _NoOrderScreen extends StatelessWidget {
+  const _NoOrderScreen();
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد طلبات',
+          message: 'لا يوجد طلب متاح لهذه العملية.',
+          kind: ResultKind.empty,
+        ),
+      );
 }
 
 class _ServerFeatureUnavailableScreen extends StatelessWidget {
