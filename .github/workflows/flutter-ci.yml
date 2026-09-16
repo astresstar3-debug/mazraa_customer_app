@@ -79,10 +79,8 @@ jobs:
           script: |
             flutter devices
 
-            set +e
-            flutter drive --no-dds --dart-define=REFERENCE_VISUAL_TEST=true --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554
-            SCREENSHOT_EXIT=$?
-            set -e
+            SCREENSHOT_EXIT=0
+            flutter drive --no-dds --dart-define=REFERENCE_VISUAL_TEST=true --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554 || SCREENSHOT_EXIT=$?
 
             echo "Installing the standalone APK built from lib/main.dart..."
             adb install -r build/installable/mazraa-app-debug.apk
