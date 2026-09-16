@@ -4,15 +4,17 @@ import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/mazraa_widgets.dart';
 
 class MatchedOnboardingScreen extends StatefulWidget {
-  const MatchedOnboardingScreen({super.key});
+  const MatchedOnboardingScreen({super.key, this.initialPage = 0});
+
+  final int initialPage;
 
   @override
   State<MatchedOnboardingScreen> createState() => _MatchedOnboardingScreenState();
 }
 
 class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
-  final controller = PageController();
-  int index = 0;
+  late final PageController controller;
+  late int index;
 
   static const pages = [
     _OnboardingData(
@@ -34,6 +36,13 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
       icon: Icons.gavel_rounded,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    index = widget.initialPage.clamp(0, pages.length - 1);
+    controller = PageController(initialPage: index);
+  }
 
   @override
   void dispose() {
