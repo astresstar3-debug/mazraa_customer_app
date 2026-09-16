@@ -7,12 +7,15 @@ import '../../features/account/presentation/connected_customer_service_screens.d
 import '../../features/account/presentation/connected_delete_account_screen.dart';
 import '../../features/account/presentation/connected_responsive_wallet_screen.dart';
 import '../../features/account/presentation/connected_server_account_extras.dart';
-import '../../features/account/presentation/connected_support_chat_screen.dart';
+import '../../features/account/presentation/matched_account_extras.dart';
+import '../../features/account/presentation/matched_account_screen.dart';
+import '../../features/account/presentation/matched_order_return_screens.dart';
 import '../../features/auctions/presentation/reference_auction_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
 import '../../features/auth/presentation/connected_recovery_screens.dart';
+import '../../features/auth/presentation/matched_auth_location_screens.dart';
 import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
@@ -38,9 +41,9 @@ abstract final class AppRouter {
       '/register' => const ConnectedRegisterScreen(),
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
       '/reset-password' => const ConnectedResetPasswordScreen(),
-      '/otp' => const ConnectedPhoneVerificationScreen(),
-      '/location-permission' => const LocationPermissionScreen(),
-      '/location' => const LocationScreen(),
+      '/otp' => const MatchedPhoneVerificationScreen(),
+      '/location-permission' => const MatchedLocationPermissionScreen(),
+      '/location' => const MatchedLocationPickerScreen(),
       '/categories' => const FinalCategoriesScreen(),
       '/search' => const FinalSearchScreen(),
       '/search-results' => const ReferenceSearchResultsScreen(),
@@ -85,17 +88,17 @@ abstract final class AppRouter {
       '/payment-success' => const PaymentResultScreen(success: true),
       '/payment-failed' => const PaymentResultScreen(success: false),
       '/wallet-pending' => const WalletPendingScreen(),
-      '/account' => const ConnectedAccountScreen(),
-      '/edit-profile' => const ConnectedEditProfileScreen(),
+      '/account' => const MatchedAccountScreen(),
+      '/edit-profile' => const MatchedEditProfileScreen(),
       '/profile-avatar' => const ConnectedAvatarScreen(),
-      '/change-phone' => const ConnectedEditProfileScreen(),
-      '/change-password' => const ConnectedChangePasswordScreen(),
+      '/change-phone' => const MatchedChangePhoneScreen(),
+      '/change-password' => const MatchedChangePasswordScreen(),
       '/settings' => const ConnectedSettingsScreen(),
       '/notifications' => const ConnectedNotificationsScreen(),
-      '/notification-preferences' => const ConnectedNotificationPreferencesScreen(),
+      '/notification-preferences' => const MatchedNotificationPreferencesScreen(),
       '/addresses' => const ConnectedAddressesScreen(),
-      '/addresses-empty' => const ConnectedAddressesScreen(),
-      '/add-address' => const ConnectedAddressFormScreen(),
+      '/addresses-empty' => const MatchedEmptyAddressesScreen(),
+      '/add-address' => const MatchedAddAddressScreen(),
       '/wallet' => const ConnectedResponsiveWalletScreen(),
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
       '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
@@ -104,23 +107,19 @@ abstract final class AppRouter {
       '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
       '/track-order' => const _FirstOrderActionRoute(action: _OrderAction.track),
       '/cancel-order' => const _FirstOrderActionRoute(action: _OrderAction.cancel),
-      '/order-cancelled' => const ConnectedOrdersScreen(),
+      '/order-cancelled' => const MatchedOrderCancelledScreen(),
       '/rate-order' => const _FirstOrderActionRoute(action: _OrderAction.rate),
-      '/returns' => const ConnectedReturnsScreen(),
+      '/returns' => const MatchedReturnsScreen(),
       '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
-      '/return-success' => const ConnectedReturnsScreen(),
-      '/refund-status' => const ConnectedReturnsScreen(),
+      '/return-success' => const MatchedReturnSuccessScreen(),
+      '/refund-status' => const MatchedRefundStatusScreen(),
       '/invoice' => const _FirstInvoiceRoute(),
       '/support' => const ConnectedSupportScreen(),
       '/support-ticket' => const ConnectedSupportTicketScreen(),
-      '/support-chat' => const ConnectedSupportChatScreen(),
-      '/legal' => const ConnectedLegalScreen(),
+      '/support-chat' => const MatchedSupportChatScreen(),
+      '/legal' => const MatchedLegalScreen(),
       '/delete-account' => const ConnectedDeleteAccountScreen(),
-      '/offline' => const GenericActionResultScreen(
-        title: 'لا يوجد اتصال بالإنترنت',
-        message: 'تحقق من اتصالك وحاول مرة أخرى.',
-        kind: ResultKind.offline,
-      ),
+      '/offline' => const MatchedOfflineScreen(),
       _ => const MainShell(),
     };
     return MaterialPageRoute(settings: settings, builder: (_) => page);
@@ -132,7 +131,9 @@ class _ReviewRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
-    if (products.isEmpty) return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا توجد بيانات تقييم متاحة.', kind: ResultKind.empty));
+    if (products.isEmpty) {
+      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا توجد بيانات تقييم متاحة.', kind: ResultKind.empty));
+    }
     return ReferenceReviewsQuestionsScreen(product: products.first);
   }
 }
@@ -142,7 +143,9 @@ class _AskRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
-    if (products.isEmpty) return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا يوجد منتج متاح لعرض الأسئلة.', kind: ResultKind.empty));
+    if (products.isEmpty) {
+      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا يوجد منتج متاح لعرض الأسئلة.', kind: ResultKind.empty));
+    }
     return ReferenceAskQuestionScreen(product: products.first);
   }
 }
@@ -152,10 +155,19 @@ enum _OrderAction { details, track, cancel, rate, returnOrder }
 class _FirstOrderActionRoute extends StatelessWidget {
   const _FirstOrderActionRoute({required this.action});
   final _OrderAction action;
+
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
-    if (id == null) return const _NoOrderScreen();
+    if (id == null) {
+      return switch (action) {
+        _OrderAction.details => const MatchedOrderDetailsScreen(),
+        _OrderAction.track => const MatchedTrackOrderScreen(),
+        _OrderAction.cancel => const MatchedCancelOrderScreen(),
+        _OrderAction.rate => const MatchedRateOrderScreen(),
+        _OrderAction.returnOrder => const MatchedReturnRequestScreen(),
+      };
+    }
     return switch (action) {
       _OrderAction.details => ConnectedOrderDetailsScreen(orderId: id),
       _OrderAction.track => ConnectedTrackOrderScreen(orderId: id),
@@ -171,7 +183,7 @@ class _FirstInvoiceRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
-    return id == null ? const _NoOrderScreen() : ConnectedInvoiceScreen(orderId: id);
+    return id == null ? const MatchedInvoiceScreen() : ConnectedInvoiceScreen(orderId: id);
   }
 }
 
@@ -180,10 +192,4 @@ int? _firstOrderId(BuildContext context) {
   if (orders.isEmpty) return null;
   final id = int.tryParse(orders.first.id) ?? 0;
   return id > 0 ? id : null;
-}
-
-class _NoOrderScreen extends StatelessWidget {
-  const _NoOrderScreen();
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: ResultStateView(title: 'لا توجد طلبات', message: 'لا يوجد طلب متاح لهذه العملية.', kind: ResultKind.empty));
 }
