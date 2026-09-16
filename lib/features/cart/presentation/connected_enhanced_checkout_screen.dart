@@ -89,14 +89,16 @@ class _ConnectedEnhancedCheckoutScreenState
       couponController.text = code;
     });
     try {
-      final response = jsonMap(await AppScope.of(context).client.post(
-        '/api/cart/apply-coupon',
-        body: {
-          'couponCode': code,
-          'addressId': selectedAddressId,
-          'deliveryZoneId': null,
-        },
-      ));
+      final response = jsonMap(
+        await AppScope.of(context).client.post(
+          '/api/cart/apply-coupon',
+          body: {
+            'couponCode': code,
+            'addressId': selectedAddressId,
+            'deliveryZoneId': null,
+          },
+        ),
+      );
       if (!mounted) return;
       setState(() {
         acceptedCoupon = code;
@@ -104,7 +106,9 @@ class _ConnectedEnhancedCheckoutScreenState
       });
     } catch (e) {
       if (mounted) {
-        setState(() => error = e is ApiException ? e.message : 'تعذر تطبيق الكوبون.');
+        setState(
+          () => error = e is ApiException ? e.message : 'تعذر تطبيق الكوبون.',
+        );
       }
     } finally {
       if (mounted) setState(() => checkingCoupon = false);
@@ -135,20 +139,17 @@ class _ConnectedEnhancedCheckoutScreenState
         paymentMethod: paymentMethod,
         couponCode: acceptedCoupon,
       );
-      await Future.wait<void>([
-        app.refreshCart(),
-        app.refreshOrders(),
-      ]);
+      await Future.wait<void>([app.refreshCart(), app.refreshOrders()]);
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) => _CheckoutSuccessScreen(order: order),
-        ),
+        MaterialPageRoute(builder: (_) => _CheckoutSuccessScreen(order: order)),
       );
     } catch (e) {
       if (mounted) {
-        setState(() => error = e is ApiException ? e.message : 'تعذر إنشاء الطلب.');
+        setState(
+          () => error = e is ApiException ? e.message : 'تعذر إنشاء الطلب.',
+        );
       }
     } finally {
       if (mounted) setState(() => submitting = false);
@@ -194,7 +195,10 @@ class _ConnectedEnhancedCheckoutScreenState
                           const SizedBox(height: 8),
                           FilledButton.icon(
                             onPressed: () async {
-                              await Navigator.pushNamed(context, '/add-address');
+                              await Navigator.pushNamed(
+                                context,
+                                '/add-address',
+                              );
                               if (mounted) _load();
                             },
                             icon: const Icon(Icons.add_location_alt_outlined),
@@ -237,7 +241,9 @@ class _ConnectedEnhancedCheckoutScreenState
                           controller: couponController,
                           decoration: const InputDecoration(
                             labelText: 'رمز الكوبون',
-                            prefixIcon: Icon(Icons.confirmation_number_outlined),
+                            prefixIcon: Icon(
+                              Icons.confirmation_number_outlined,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -245,10 +251,14 @@ class _ConnectedEnhancedCheckoutScreenState
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: checkingCoupon ? null : _applyCoupon,
-                            icon: const Icon(Icons.check_circle_outline_rounded),
-                            label: Text(checkingCoupon
-                                ? 'جاري التحقق...'
-                                : 'التحقق وتطبيق الكوبون'),
+                            icon: const Icon(
+                              Icons.check_circle_outline_rounded,
+                            ),
+                            label: Text(
+                              checkingCoupon
+                                  ? 'جاري التحقق...'
+                                  : 'التحقق وتطبيق الكوبون',
+                            ),
                           ),
                         ),
                         if (acceptedCoupon != null) ...[
@@ -284,9 +294,21 @@ class _ConnectedEnhancedCheckoutScreenState
                   AppSurfaceCard(
                     child: Column(
                       children: [
-                        _paymentTile(3, 'الدفع عند الاستلام', Icons.payments_outlined),
-                        _paymentTile(2, 'المحفظة الداخلية', Icons.account_balance_wallet_outlined),
-                        _paymentTile(4, 'تحويل بنكي', Icons.account_balance_outlined),
+                        _paymentTile(
+                          3,
+                          'الدفع عند الاستلام',
+                          Icons.payments_outlined,
+                        ),
+                        _paymentTile(
+                          2,
+                          'المحفظة الداخلية',
+                          Icons.account_balance_wallet_outlined,
+                        ),
+                        _paymentTile(
+                          4,
+                          'تحويل بنكي',
+                          Icons.account_balance_outlined,
+                        ),
                       ],
                     ),
                   ),
@@ -303,11 +325,16 @@ class _ConnectedEnhancedCheckoutScreenState
                           ...quote!.entries
                               .where((e) => e.value is num)
                               .take(6)
-                              .map((e) => _row(_quoteLabel(e.key), '${e.value}')),
+                              .map(
+                                (e) => _row(_quoteLabel(e.key), '${e.value}'),
+                              ),
                         const Divider(),
                         const Text(
                           'القيمة النهائية والخصم ورسوم التوصيل يحتسبها الخادم عند إنشاء الطلب.',
-                          style: TextStyle(fontSize: 11, color: AppColors.muted),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.muted,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -315,7 +342,10 @@ class _ConnectedEnhancedCheckoutScreenState
                   ),
                   if (error != null) ...[
                     const SizedBox(height: 10),
-                    Text(error!, style: const TextStyle(color: AppColors.error)),
+                    Text(
+                      error!,
+                      style: const TextStyle(color: AppColors.error),
+                    ),
                   ],
                 ],
               ),
@@ -323,23 +353,25 @@ class _ConnectedEnhancedCheckoutScreenState
     );
   }
 
-  Widget _paymentTile(int value, String title, IconData icon) => RadioListTile<int>(
+  Widget _paymentTile(int value, String title, IconData icon) =>
+      RadioListTile<int>(
         value: value,
         groupValue: paymentMethod,
-        onChanged: (next) => setState(() => paymentMethod = next ?? paymentMethod),
+        onChanged: (next) =>
+            setState(() => paymentMethod = next ?? paymentMethod),
         secondary: Icon(icon),
         title: Text(title),
       );
 
   Widget _row(String label, String value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Row(
-          children: [
-            Expanded(child: Text(label)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(
+      children: [
+        Expanded(child: Text(label)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+      ],
+    ),
+  );
 
   String _quoteLabel(String key) {
     const labels = {
@@ -361,19 +393,19 @@ class _CheckoutSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: const MazraaAppBar(title: 'تم إنشاء الطلب'),
-        body: ResultStateView(
-          kind: ResultKind.success,
-          title: 'تم إنشاء طلبك بنجاح',
-          message: 'رقم الطلب #${order.id} • الإجمالي ${formatPrice(order.total)}',
-          primaryLabel: 'عرض الطلبات',
-          onPrimary: () => Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/orders',
-            (route) => route.isFirst,
-          ),
-          secondaryLabel: 'العودة للرئيسية',
-          onSecondary: () => Navigator.popUntil(context, (route) => route.isFirst),
-        ),
-      );
+    appBar: const MazraaAppBar(title: 'تم إنشاء الطلب'),
+    body: ResultStateView(
+      kind: ResultKind.success,
+      title: 'تم إنشاء طلبك بنجاح',
+      message: 'رقم الطلب #${order.id} • الإجمالي ${formatPrice(order.total)}',
+      primaryLabel: 'عرض الطلبات',
+      onPrimary: () => Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/orders',
+        (route) => route.isFirst,
+      ),
+      secondaryLabel: 'العودة للرئيسية',
+      onSecondary: () => Navigator.popUntil(context, (route) => route.isFirst),
+    ),
+  );
 }

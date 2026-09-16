@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mazraa_customer_app/features/account/presentation/misc_screens.dart';
 
 import '../../features/account/presentation/account_screens.dart';
 import '../../features/account/presentation/connected_account_data_screens.dart';
@@ -18,7 +19,6 @@ import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
 import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
 import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
-import '../../features/marketplace/presentation/marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../state/app_controller.dart';
@@ -45,7 +45,6 @@ abstract final class AppRouter {
       '/product-feed' => const _FirstProductScreen(index: 3),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
-      '/favorites' => const FavoritesScreen(),
       '/favorites-empty' => const FavoritesScreen(empty: true),
       '/auctions' => const ConnectedAuctionListScreen(),
       '/auction-details' => const _FirstAuctionScreen(),

@@ -18,8 +18,7 @@ class AuthSession {
 }
 
 class AuthRepository {
-  AuthRepository(this.client, {SessionStorage storage = const SessionStorage()})
-      : _storage = storage;
+  AuthRepository(this.client, {this._storage = const SessionStorage()});
 
   final ApiClient client;
   final SessionStorage _storage;

@@ -410,7 +410,7 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: gallery.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 7),
+                  separatorBuilder: (_, _) => const SizedBox(width: 7),
                   itemBuilder: (_, index) => InkWell(
                     onTap: () => setState(() => imageIndex = index),
                     child: ClipRRect(
@@ -555,7 +555,7 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: related.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (_, index) => SizedBox(
                     width: 180,
                     child: ProductCard(
