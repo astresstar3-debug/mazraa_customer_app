@@ -7,83 +7,183 @@ class MatchedPhoneVerificationScreen extends StatelessWidget {
   const MatchedPhoneVerificationScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => _BaseScreen(
-        title: 'التحقق من رقم الهاتف',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _OtpHero(),
-            const SizedBox(height: 18),
-            const Text(
-              'أدخل رمز التحقق',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.forestDark,
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'أرسلنا رمزًا مكونًا من 4 أرقام إلى +966 50 123 4567',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.muted, fontSize: 11.5),
-            ),
-            const SizedBox(height: 24),
-            Directionality(
-              textDirection: TextDirection.ltr,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  4,
-                  (i) => Container(
-                    width: 56,
-                    height: 62,
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Text(
-                      ['2', '8', '4', '1'][i],
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.forestDark,
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: AppColors.ivory,
+        body: SafeArea(
+          child: AppPage(
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 78,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AppLogo(size: 58, showName: true),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 22),
+                          child: Text(
+                            'التحقق من رقم الجوال',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.forestDark,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: IconButton(
+                          onPressed: () => Navigator.maybePop(context),
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            color: AppColors.forestDark,
+                            size: 21,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 19),
+                const _OtpHero(),
+                const SizedBox(height: 20),
+                const Text(
+                  'أدخل رمز التحقق',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.forestDark,
+                    fontSize: 31,
+                    height: 1.15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'أرسلنا الرمز إلى +966 50 123 4567',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF83947A),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 27),
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      4,
+                      (i) => Container(
+                        width: 58,
+                        height: 65,
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFEFA),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE6DECE), width: 1.2),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x0B000000), blurRadius: 10, offset: Offset(0, 4)),
+                          ],
+                        ),
+                        child: Text(
+                          ['2', '8', '4', '1'][i],
+                          style: const TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.forestDark,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 17),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.schedule_rounded, color: AppColors.terracotta, size: 16),
-                SizedBox(width: 5),
-                Text(
-                  'إعادة الإرسال خلال 00:42',
-                  style: TextStyle(
-                    color: AppColors.terracotta,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
+                const SizedBox(height: 25),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.schedule_rounded, color: AppColors.terracotta, size: 24),
+                    SizedBox(width: 9),
+                    Text(
+                      'إعادة الإرسال خلال',
+                      style: TextStyle(
+                        color: AppColors.forestDark,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(width: 9),
+                    Text(
+                      '00:42',
+                      style: TextStyle(
+                        color: AppColors.terracotta,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text(
+                    'تغيير رقم الجوال',
+                    style: TextStyle(
+                      color: AppColors.forestDark,
+                      fontWeight: FontWeight.w900,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                Container(
+                  height: 58,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                      colors: [Color(0xFF0B4D2B), Color(0xFF1D6A3E)],
+                    ),
+                    borderRadius: BorderRadius.circular(21),
+                  ),
+                  child: FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(21)),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        PositionedDirectional(
+                          start: 3,
+                          child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .18), size: 28),
+                        ),
+                        PositionedDirectional(
+                          end: 3,
+                          child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .17), size: 28),
+                        ),
+                        const Text(
+                          'متابعة',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const _OtpBottomLandscape(),
               ],
             ),
-            TextButton(onPressed: () {}, child: const Text('تغيير رقم الجوال')),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 54,
-              child: FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('متابعة', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
-            ),
-          ],
+          ),
         ),
       );
 }
@@ -309,45 +409,146 @@ class _OtpHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: SizedBox(
-          width: 160,
-          height: 145,
+          width: 260,
+          height: 220,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              PositionedDirectional(
-                start: 5,
-                bottom: 5,
-                child: Transform.rotate(
-                  angle: -.5,
-                  child: Icon(
-                    Icons.eco_rounded,
-                    size: 76,
-                    color: AppColors.forest.withValues(alpha: .24),
-                  ),
+              Container(
+                width: 188,
+                height: 188,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF6EBD3),
+                  shape: BoxShape.circle,
                 ),
               ),
               PositionedDirectional(
-                end: 5,
-                bottom: 5,
+                start: 25,
+                bottom: 27,
                 child: Transform.rotate(
-                  angle: .5,
-                  child: Icon(
-                    Icons.eco_rounded,
-                    size: 76,
-                    color: AppColors.terracotta.withValues(alpha: .20),
+                  angle: -.50,
+                  child: const Icon(Icons.eco_rounded, size: 95, color: Color(0xFF4C7948)),
+                ),
+              ),
+              PositionedDirectional(
+                end: 23,
+                bottom: 24,
+                child: Transform.rotate(
+                  angle: .48,
+                  child: const Icon(Icons.eco_rounded, size: 94, color: Color(0xFF628357)),
+                ),
+              ),
+              Positioned(
+                top: 27,
+                child: Container(
+                  width: 76,
+                  height: 82,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.terracotta, width: 11),
+                    borderRadius: BorderRadius.circular(45),
                   ),
                 ),
               ),
               Container(
-                width: 102,
-                height: 102,
-                decoration: const BoxDecoration(color: AppColors.forestSoft, shape: BoxShape.circle),
-                child: const Icon(Icons.lock_rounded, size: 55, color: AppColors.forest),
+                width: 112,
+                height: 116,
+                margin: const EdgeInsets.only(top: 37),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D653D),
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x170D4328), blurRadius: 17, offset: Offset(0, 6)),
+                  ],
+                ),
+                child: const Icon(Icons.lock_rounded, size: 60, color: Color(0xFFFFF7E4)),
+              ),
+              PositionedDirectional(
+                top: 47,
+                end: 36,
+                child: Transform.rotate(
+                  angle: .55,
+                  child: const Icon(Icons.remove_rounded, color: AppColors.terracotta, size: 32),
+                ),
+              ),
+              PositionedDirectional(
+                top: 77,
+                start: 30,
+                child: const Icon(Icons.circle, color: AppColors.terracotta, size: 10),
               ),
             ],
           ),
         ),
       );
+}
+
+class _OtpBottomLandscape extends StatelessWidget {
+  const _OtpBottomLandscape();
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 160,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(child: CustomPaint(painter: _OtpLandscapePainter())),
+            PositionedDirectional(
+              bottom: -20,
+              start: -27,
+              child: Transform.rotate(
+                angle: -.30,
+                child: Icon(Icons.eco_rounded, size: 118, color: const Color(0xFF668653).withValues(alpha: .60)),
+              ),
+            ),
+            PositionedDirectional(
+              bottom: -20,
+              end: -28,
+              child: Transform.rotate(
+                angle: .31,
+                child: Icon(Icons.eco_rounded, size: 118, color: const Color(0xFF668653).withValues(alpha: .58)),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _OtpLandscapePainter extends CustomPainter {
+  const _OtpLandscapePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final beige = Paint()..color = const Color(0xFFECE3C7).withValues(alpha: .82);
+    final green = Paint()..color = const Color(0xFFBCC79D).withValues(alpha: .66);
+    final light = Paint()..color = const Color(0xFFF4EBD6).withValues(alpha: .88);
+
+    final p1 = Path()
+      ..moveTo(0, size.height * .70)
+      ..quadraticBezierTo(size.width * .22, size.height * .43, size.width * .48, size.height * .72)
+      ..quadraticBezierTo(size.width * .75, size.height, size.width, size.height * .64)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(p1, light);
+
+    final p2 = Path()
+      ..moveTo(0, size.height * .89)
+      ..quadraticBezierTo(size.width * .28, size.height * .67, size.width * .57, size.height * .84)
+      ..quadraticBezierTo(size.width * .77, size.height * .96, size.width, size.height * .77)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(p2, beige);
+
+    final p3 = Path()
+      ..moveTo(size.width * .45, size.height)
+      ..quadraticBezierTo(size.width * .70, size.height * .65, size.width, size.height * .80)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(p3, green);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _PermissionHero extends StatelessWidget {
