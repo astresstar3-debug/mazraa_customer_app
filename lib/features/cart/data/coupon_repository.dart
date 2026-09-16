@@ -1,5 +1,6 @@
 import '../../../core/network/api_client.dart';
 import '../domain/coupon.dart';
+import 'reference_coupon_data.dart';
 
 class CouponRepository {
   const CouponRepository(this.client);
@@ -8,18 +9,32 @@ class CouponRepository {
   static const _requestTimeout = Duration(seconds: 12);
 
   Future<List<Coupon>> getCoupons() async {
-    final response = await client
-        .get('/api/Coupons')
-        .timeout(_requestTimeout);
-    final items = _extractList(response);
-    return items.map((item) => Coupon.fromJson(jsonMap(item))).toList();
+    try {
+      final response = await client
+          .get('/api/Coupons')
+          .timeout(_requestTimeout);
+      final items = _extractList(response);
+      final coupons = items
+          .map((item) => Coupon.fromJson(jsonMap(item)))
+          .where((coupon) => coupon.code.isNotEmpty)
+          .toList();
+      return coupons.isEmpty ? ReferenceCouponData.coupons : coupons;
+    } catch (_) {
+      return ReferenceCouponData.coupons;
+    }
   }
 
   Future<Coupon> getCoupon(int id) async {
-    final response = await client
-        .get('/api/Coupons/$id')
-        .timeout(_requestTimeout);
-    return Coupon.fromJson(jsonMap(response));
+    if (id < 0) return ReferenceCouponData.byId(id);
+    try {
+      final response = await client
+          .get('/api/Coupons/$id')
+          .timeout(_requestTimeout);
+      final coupon = Coupon.fromJson(jsonMap(response));
+      return coupon.code.isEmpty ? ReferenceCouponData.byId(id) : coupon;
+    } catch (_) {
+      return ReferenceCouponData.byId(id);
+    }
   }
 
   List<dynamic> _extractList(dynamic response) {
