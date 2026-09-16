@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/state/app_controller.dart';
 import '../../core/theme/app_theme.dart';
-import '../account/presentation/connected_account_screen.dart';
+import '../account/presentation/matched_account_screen.dart';
 import '../auctions/presentation/reference_auction_screens.dart';
 import '../cart/presentation/connected_cart_screens.dart';
 import '../home/presentation/reference_home_screen.dart';
@@ -24,7 +24,7 @@ class _MainShellState extends State<MainShell> {
     ReferenceProductListScreen(),
     ReferenceAuctionListScreen(embedded: true),
     ConnectedCartScreen(embedded: true),
-    ConnectedAccountScreen(embedded: true),
+    MatchedAccountScreen(),
   ];
 
   @override
@@ -33,11 +33,13 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       backgroundColor: AppColors.ivory,
       body: IndexedStack(index: index, children: pages),
-      bottomNavigationBar: _ReferenceBottomBar(
-        index: index,
-        cartCount: count,
-        onChanged: (value) => setState(() => index = value),
-      ),
+      bottomNavigationBar: index == 4
+          ? null
+          : _ReferenceBottomBar(
+              index: index,
+              cartCount: count,
+              onChanged: (value) => setState(() => index = value),
+            ),
     );
   }
 }
