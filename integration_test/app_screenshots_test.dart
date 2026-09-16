@@ -9,10 +9,15 @@ import 'package:mazraa_customer_app/main.dart' as app;
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  bool hasLoadingIndicators() =>
-      find.byType(CircularProgressIndicator).evaluate().isNotEmpty ||
-      find.byType(LinearProgressIndicator).evaluate().isNotEmpty ||
-      find.byType(RefreshProgressIndicator).evaluate().isNotEmpty;
+  bool hasIndeterminateLoadingIndicators() {
+    final indicators = find.byWidgetPredicate((widget) {
+      if (widget is RefreshProgressIndicator) return widget.value == null;
+      if (widget is CircularProgressIndicator) return widget.value == null;
+      if (widget is LinearProgressIndicator) return widget.value == null;
+      return false;
+    });
+    return indicators.evaluate().isNotEmpty;
+  }
 
   AppController appController(WidgetTester tester) {
     final materialApp = find.byType(MaterialApp);
@@ -29,11 +34,10 @@ void main() {
       final widget = element.widget;
       if (widget is! Image) continue;
       try {
-        await precacheImage(widget.image, element)
-            .timeout(perImageTimeout);
+        await precacheImage(widget.image, element).timeout(perImageTimeout);
       } catch (_) {
-        // A failed remote image must resolve to the app's error/placeholder UI.
-        // The screenshot should never be taken while the image is still pending.
+        // Failed remote images are allowed only after the app resolves them to
+        // its final error/placeholder state. Never capture while still pending.
       }
     }
     await tester.pump(const Duration(milliseconds: 700));
@@ -49,10 +53,17 @@ void main() {
     var stableChecks = 0;
 
     while (DateTime.now().isBefore(deadline)) {
+      final uiException = tester.takeException();
+      if (uiException != null) {
+        throw TestFailure(
+          'Unhandled UI exception while waiting for $screenName: $uiException',
+        );
+      }
+
       final controller = appController(tester);
       final loading = controller.isLoading ||
           controller.client.hasPendingRequests ||
-          hasLoadingIndicators();
+          hasIndeterminateLoadingIndicators();
 
       if (!loading) {
         stableChecks++;
@@ -61,9 +72,15 @@ void main() {
           final settled = appController(tester);
           if (!settled.isLoading &&
               !settled.client.hasPendingRequests &&
-              !hasLoadingIndicators()) {
+              !hasIndeterminateLoadingIndicators()) {
             // Give decoded images and final text/layout one last paint cycle.
             await tester.pump(const Duration(seconds: 1));
+            final finalException = tester.takeException();
+            if (finalException != null) {
+              throw TestFailure(
+                'Unhandled UI exception before capturing $screenName: $finalException',
+              );
+            }
             return;
           }
           stableChecks = 0;
@@ -79,7 +96,7 @@ void main() {
       'Timed out waiting for $screenName. '
       'appLoading=${controller.isLoading}, '
       'pendingApiRequests=${controller.client.activeRequestCount}, '
-      'visibleLoadingIndicators=${hasLoadingIndicators()}. '
+      'visibleIndeterminateLoadingIndicators=${hasIndeterminateLoadingIndicators()}. '
       'Screenshot was not captured with incomplete data.',
     );
   }
@@ -94,10 +111,6 @@ void main() {
       screenName: name,
       timeout: timeout,
     );
-    final exception = tester.takeException();
-    if (exception != null) {
-      throw TestFailure('Unhandled UI exception on $name: $exception');
-    }
     await binding.takeScreenshot(name);
   }
 
@@ -147,7 +160,8 @@ void main() {
     expect(
       controller.isAuthenticated,
       isTrue,
-      reason: 'The disposable integration-test account must authenticate before protected screens are captured.',
+      reason:
+          'The disposable integration-test account must authenticate before protected screens are captured.',
     );
   }
 
@@ -174,14 +188,22 @@ void main() {
     // Continue the same emulator/app process using the disposable test account.
     await loginTestAccount(tester);
     await openRoute(tester, '/');
-    await capture(tester, 'home-authenticated', timeout: const Duration(seconds: 70));
+    await capture(
+      tester,
+      'home-authenticated',
+      timeout: const Duration(seconds: 70),
+    );
 
     // Marketplace and product flows.
     await captureRoutes(tester, const {
       '/categories': 'market-categories',
       '/search': 'market-search',
+      '/search-results': 'market-search-results',
+      '/search-empty': 'market-search-empty',
       '/products': 'market-products',
+      '/product-list-view': 'market-products-list',
       '/offers': 'market-offers',
+      '/product-filter': 'market-product-filter',
       '/coupon': 'market-coupons',
       '/product-details': 'product-details',
       '/product-medicine': 'product-medicine',
@@ -190,14 +212,17 @@ void main() {
       '/ask-question': 'product-question',
       '/favorites': 'favorites',
       '/favorites-empty': 'favorites-empty',
+      '/favorites-plant-empty': 'favorites-plant-empty',
     });
 
     // Auctions, including UI-only reference states when the backend has no endpoint yet.
     await captureRoutes(tester, const {
       '/auctions': 'auctions-list',
+      '/auction-filter': 'auction-filter',
       '/auction-details': 'auction-details',
       '/auction-gallery': 'auction-gallery',
       '/auction-bid': 'auction-bid',
+      '/auction-bid-confirm': 'auction-bid-confirm',
       '/auction-success': 'auction-success',
       '/auction-won': 'auction-won',
       '/auction-ended': 'auction-ended',
