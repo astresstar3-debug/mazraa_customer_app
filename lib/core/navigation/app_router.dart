@@ -8,8 +8,7 @@ import '../../features/account/presentation/connected_delete_account_screen.dart
 import '../../features/account/presentation/connected_responsive_wallet_screen.dart';
 import '../../features/account/presentation/connected_server_account_extras.dart';
 import '../../features/account/presentation/connected_support_chat_screen.dart';
-import '../../features/auctions/presentation/auction_screens.dart';
-import '../../features/auctions/presentation/connected_auction_screens.dart';
+import '../../features/auctions/presentation/reference_auction_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
@@ -54,17 +53,19 @@ abstract final class AppRouter {
       '/favorites' => const ReferenceFavoritesScreen(),
       '/favorites-empty' => const ReferenceFavoritesScreen(empty: true),
       '/favorites-plant-empty' => const ReferenceFavoritesScreen(plantEmpty: true),
-      '/auctions' => const ConnectedAuctionListScreen(),
-      '/auction-details' => const _FirstAuctionScreen(),
-      '/auction-gallery' => const _FirstAuctionScreen(index: 2),
-      '/auction-bid' => const _BidRoute(),
-      '/auction-success' => const _ReferenceAuctionResultRoute(kind: AuctionResultKind.success),
-      '/auction-won' => const _ReferenceAuctionResultRoute(kind: AuctionResultKind.won),
-      '/auction-ended' => const _ReferenceAuctionResultRoute(kind: AuctionResultKind.ended),
-      '/my-auctions' => const MyAuctionsScreen(),
-      '/bid-history' => const MyAuctionsScreen(history: true),
-      '/auction-reminder' => const _ReferenceAuctionReminderRoute(),
-      '/guarantee-details' => const GuaranteeDetailsScreen(),
+      '/auctions' => const ReferenceAuctionListScreen(),
+      '/auction-filter' => const ReferenceAuctionFilterScreen(),
+      '/auction-details' => ReferenceAuctionDetailsScreen(auction: ReferenceDemoData.auctions.first),
+      '/auction-gallery' => ReferenceAuctionDetailsScreen(auction: ReferenceDemoData.auctions.first, galleryMode: true),
+      '/auction-bid' => ReferenceBidScreen(auction: ReferenceDemoData.auctions.first),
+      '/auction-bid-confirm' => const ReferenceBidConfirmScreen(),
+      '/auction-success' => const ReferenceAuctionResultScreen(kind: ReferenceAuctionResultKind.bidSuccess),
+      '/auction-won' => const ReferenceAuctionResultScreen(kind: ReferenceAuctionResultKind.won),
+      '/auction-ended' => const ReferenceAuctionResultScreen(kind: ReferenceAuctionResultKind.ended),
+      '/my-auctions' => const ReferenceMyAuctionsScreen(),
+      '/bid-history' => const ReferenceMyAuctionsScreen(history: true),
+      '/auction-reminder' => const ReferenceAuctionReminderScreen(),
+      '/guarantee-details' => const ReferenceGuaranteeScreen(),
       '/cart' => const ConnectedCartScreen(),
       '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
       '/checkout' => const ConnectedEnhancedCheckoutScreen(),
@@ -124,19 +125,10 @@ abstract final class AppRouter {
 class _FirstProductScreen extends StatelessWidget {
   const _FirstProductScreen({this.index = 0});
   final int index;
-
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
-    if (products.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد منتجات',
-          message: 'لم يعرض الخادم منتجات متاحة حاليًا.',
-          kind: ResultKind.empty,
-        ),
-      );
-    }
+    if (products.isEmpty) return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لم يعرض الخادم منتجات متاحة حاليًا.', kind: ResultKind.empty));
     final safeIndex = index < 0 ? 0 : (index >= products.length ? products.length - 1 : index);
     return ReferenceProductDetailsScreen(product: products[safeIndex]);
   }
@@ -144,71 +136,22 @@ class _FirstProductScreen extends StatelessWidget {
 
 class _ReviewRoute extends StatelessWidget {
   const _ReviewRoute();
-
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
-    if (products.isEmpty) {
-      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا توجد بيانات تقييم متاحة.', kind: ResultKind.empty));
-    }
+    if (products.isEmpty) return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا توجد بيانات تقييم متاحة.', kind: ResultKind.empty));
     return ReferenceReviewsQuestionsScreen(product: products.first);
   }
 }
 
 class _AskRoute extends StatelessWidget {
   const _AskRoute();
-
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
-    if (products.isEmpty) {
-      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا يوجد منتج متاح لعرض الأسئلة.', kind: ResultKind.empty));
-    }
+    if (products.isEmpty) return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا يوجد منتج متاح لعرض الأسئلة.', kind: ResultKind.empty));
     return ReferenceAskQuestionScreen(product: products.first);
   }
-}
-
-class _FirstAuctionScreen extends StatelessWidget {
-  const _FirstAuctionScreen({this.index = 0});
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    final auctions = AppScope.of(context).auctions;
-    if (auctions.isEmpty) {
-      return const Scaffold(body: ResultStateView(title: 'لا توجد مزادات', message: 'لم يعرض الخادم مزادات متاحة حاليًا.', kind: ResultKind.empty));
-    }
-    final safeIndex = index < 0 ? 0 : (index >= auctions.length ? auctions.length - 1 : index);
-    return ConnectedAuctionDetailsScreen(auction: auctions[safeIndex]);
-  }
-}
-
-class _BidRoute extends StatelessWidget {
-  const _BidRoute();
-
-  @override
-  Widget build(BuildContext context) {
-    final app = AppScope.of(context);
-    if (app.auctions.isEmpty) {
-      return const Scaffold(body: ResultStateView(title: 'لا توجد مزادات', message: 'لا يوجد مزاد متاح للمزايدة الآن.', kind: ResultKind.empty));
-    }
-    if (!app.isAuthenticated) return const ConnectedLoginScreen();
-    return ConnectedBidScreen(auction: app.auctions.first);
-  }
-}
-
-class _ReferenceAuctionResultRoute extends StatelessWidget {
-  const _ReferenceAuctionResultRoute({required this.kind});
-  final AuctionResultKind kind;
-
-  @override
-  Widget build(BuildContext context) => AuctionResultScreen(auction: ReferenceDemoData.auctions.first, kind: kind);
-}
-
-class _ReferenceAuctionReminderRoute extends StatelessWidget {
-  const _ReferenceAuctionReminderRoute();
-  @override
-  Widget build(BuildContext context) => AuctionReminderScreen(auction: ReferenceDemoData.auctions.first);
 }
 
 enum _OrderAction { details, track, cancel, rate, returnOrder }
@@ -216,7 +159,6 @@ enum _OrderAction { details, track, cancel, rate, returnOrder }
 class _FirstOrderActionRoute extends StatelessWidget {
   const _FirstOrderActionRoute({required this.action});
   final _OrderAction action;
-
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
