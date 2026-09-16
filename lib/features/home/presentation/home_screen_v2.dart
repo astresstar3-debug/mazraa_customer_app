@@ -49,23 +49,57 @@ class _HomeScreenState extends State<HomeScreen> {
     final featuredProducts = discounted.isEmpty ? products : discounted;
 
     return Scaffold(
-      appBar: MazraaAppBar(
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.pushNamed(context, '/notifications'),
-            icon: const Badge(
-              smallSize: 7,
-              child: Icon(Icons.notifications_none_rounded),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(68),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(14, 5, 14, 3),
+            child: Directionality(
+              textDirection: TextDirection.ltr,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 112,
+                    child: app.location.isEmpty
+                        ? const SizedBox.shrink()
+                        : TextButton.icon(
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/location'),
+                            icon: const Icon(
+                              Icons.location_on_rounded,
+                              size: 20,
+                            ),
+                            label: Text(
+                              app.location,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                  ),
+                  const Expanded(
+                    child: Center(child: AppLogo(size: 48)),
+                  ),
+                  SizedBox(
+                    width: 112,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        tooltip: 'الإشعارات',
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/notifications'),
+                        icon: const Badge(
+                          smallSize: 7,
+                          child: Icon(Icons.notifications_none_rounded),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-        leading: app.location.isEmpty
-            ? null
-            : IconButton(
-                tooltip: app.location,
-                onPressed: () => Navigator.pushNamed(context, '/location'),
-                icon: const Icon(Icons.location_on_rounded),
-              ),
+        ),
       ),
       body: AppPage(
         padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 14, 26),
@@ -518,7 +552,7 @@ class _QuickCategory extends StatelessWidget {
                 Text(
                   label,
                   maxLines: 1,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.forestDark,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
