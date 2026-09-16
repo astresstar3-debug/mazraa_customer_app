@@ -5,6 +5,7 @@ import '../../features/account/presentation/connected_account_data_screens.dart'
 import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/connected_customer_service_screens.dart';
 import '../../features/account/presentation/connected_delete_account_screen.dart';
+import '../../features/account/presentation/connected_responsive_wallet_screen.dart';
 import '../../features/account/presentation/connected_server_account_extras.dart';
 import '../../features/account/presentation/connected_support_chat_screen.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
@@ -85,7 +86,7 @@ abstract final class AppRouter {
       '/addresses' => const ConnectedAddressesScreen(),
       '/addresses-empty' => const ConnectedAddressesScreen(),
       '/add-address' => const ConnectedAddressFormScreen(),
-      '/wallet' => const ConnectedWalletScreen(),
+      '/wallet' => const ConnectedResponsiveWalletScreen(),
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
       '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
       '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
