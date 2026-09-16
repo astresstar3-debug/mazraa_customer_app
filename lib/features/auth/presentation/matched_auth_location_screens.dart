@@ -97,65 +97,70 @@ class MatchedLocationPermissionScreen extends StatelessWidget {
         body: BotanicalBackdrop(
           dense: false,
           child: SafeArea(
-            child: AppPage(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 28),
-              child: Column(
-                children: [
-                  const Center(child: AppLogo(size: 76, showName: true)),
-                  const Spacer(),
-                  const _PermissionHero(),
-                  const SizedBox(height: 22),
-                  const Text(
-                    'فعّل موقعك',
-                    style: TextStyle(
-                      color: AppColors.forestDark,
-                      fontSize: 29,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'نستخدم موقعك لعرض المتاجر والمنتجات القريبة وتحديد عنوان التوصيل بدقة.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.muted, fontSize: 12.5, height: 1.65),
-                  ),
-                  const SizedBox(height: 16),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 28),
+                  child: Column(
                     children: [
-                      Icon(Icons.shield_outlined, color: AppColors.forest, size: 16),
-                      SizedBox(width: 5),
-                      Text(
-                        'لن نشارك موقعك دون إذنك',
+                      const Center(child: AppLogo(size: 76, showName: true)),
+                      const Spacer(),
+                      const _PermissionHero(),
+                      const SizedBox(height: 22),
+                      const Text(
+                        'فعّل موقعك',
                         style: TextStyle(
                           color: AppColors.forestDark,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 29,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'نستخدم موقعك لعرض المتاجر والمنتجات القريبة وتحديد عنوان التوصيل بدقة.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.muted, fontSize: 12.5, height: 1.65),
+                      ),
+                      const SizedBox(height: 16),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shield_outlined, color: AppColors.forest, size: 16),
+                          SizedBox(width: 5),
+                          Text(
+                            'لن نشارك موقعك دون إذنك',
+                            style: TextStyle(
+                              color: AppColors.forestDark,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: FilledButton.icon(
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/location'),
+                          icon: const Icon(Icons.location_on_rounded),
+                          label: const Text('السماح بالموقع', style: TextStyle(fontWeight: FontWeight.w900)),
+                        ),
+                      ),
+                      const SizedBox(height: 9),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.pushReplacementNamed(context, '/location'),
+                          icon: const Icon(Icons.keyboard_alt_outlined),
+                          label: const Text('الإدخال يدويًا'),
                         ),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 54,
-                    child: FilledButton.icon(
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/location'),
-                      icon: const Icon(Icons.location_on_rounded),
-                      label: const Text('السماح بالموقع', style: TextStyle(fontWeight: FontWeight.w900)),
-                    ),
-                  ),
-                  const SizedBox(height: 9),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/location'),
-                      icon: const Icon(Icons.keyboard_alt_outlined),
-                      label: const Text('الإدخال يدويًا'),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
