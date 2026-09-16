@@ -18,9 +18,8 @@ import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
-import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
-import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
+import '../../features/marketplace/presentation/reference_product_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../reference/reference_demo_data.dart';
@@ -139,7 +138,7 @@ class _FirstProductScreen extends StatelessWidget {
       );
     }
     final safeIndex = index < 0 ? 0 : (index >= products.length ? products.length - 1 : index);
-    return ConnectedProductDetailsScreen(product: products[safeIndex]);
+    return ReferenceProductDetailsScreen(product: products[safeIndex]);
   }
 }
 
@@ -150,15 +149,9 @@ class _ReviewRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
     if (products.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد منتجات',
-          message: 'لا توجد بيانات تقييم متاحة.',
-          kind: ResultKind.empty,
-        ),
-      );
+      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا توجد بيانات تقييم متاحة.', kind: ResultKind.empty));
     }
-    return ConnectedProductReviewsScreen(product: products.first);
+    return ReferenceReviewsQuestionsScreen(product: products.first);
   }
 }
 
@@ -169,15 +162,9 @@ class _AskRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
     if (products.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد منتجات',
-          message: 'لا يوجد منتج متاح لعرض الأسئلة.',
-          kind: ResultKind.empty,
-        ),
-      );
+      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا يوجد منتج متاح لعرض الأسئلة.', kind: ResultKind.empty));
     }
-    return ConnectedProductQuestionsScreen(product: products.first);
+    return ReferenceAskQuestionScreen(product: products.first);
   }
 }
 
@@ -189,13 +176,7 @@ class _FirstAuctionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final auctions = AppScope.of(context).auctions;
     if (auctions.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد مزادات',
-          message: 'لم يعرض الخادم مزادات متاحة حاليًا.',
-          kind: ResultKind.empty,
-        ),
-      );
+      return const Scaffold(body: ResultStateView(title: 'لا توجد مزادات', message: 'لم يعرض الخادم مزادات متاحة حاليًا.', kind: ResultKind.empty));
     }
     final safeIndex = index < 0 ? 0 : (index >= auctions.length ? auctions.length - 1 : index);
     return ConnectedAuctionDetailsScreen(auction: auctions[safeIndex]);
@@ -209,13 +190,7 @@ class _BidRoute extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
     if (app.auctions.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد مزادات',
-          message: 'لا يوجد مزاد متاح للمزايدة الآن.',
-          kind: ResultKind.empty,
-        ),
-      );
+      return const Scaffold(body: ResultStateView(title: 'لا توجد مزادات', message: 'لا يوجد مزاد متاح للمزايدة الآن.', kind: ResultKind.empty));
     }
     if (!app.isAuthenticated) return const ConnectedLoginScreen();
     return ConnectedBidScreen(auction: app.auctions.first);
@@ -227,19 +202,13 @@ class _ReferenceAuctionResultRoute extends StatelessWidget {
   final AuctionResultKind kind;
 
   @override
-  Widget build(BuildContext context) => AuctionResultScreen(
-        auction: ReferenceDemoData.auctions.first,
-        kind: kind,
-      );
+  Widget build(BuildContext context) => AuctionResultScreen(auction: ReferenceDemoData.auctions.first, kind: kind);
 }
 
 class _ReferenceAuctionReminderRoute extends StatelessWidget {
   const _ReferenceAuctionReminderRoute();
-
   @override
-  Widget build(BuildContext context) => AuctionReminderScreen(
-        auction: ReferenceDemoData.auctions.first,
-      );
+  Widget build(BuildContext context) => AuctionReminderScreen(auction: ReferenceDemoData.auctions.first);
 }
 
 enum _OrderAction { details, track, cancel, rate, returnOrder }
@@ -264,7 +233,6 @@ class _FirstOrderActionRoute extends StatelessWidget {
 
 class _FirstInvoiceRoute extends StatelessWidget {
   const _FirstInvoiceRoute();
-
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
@@ -281,13 +249,6 @@ int? _firstOrderId(BuildContext context) {
 
 class _NoOrderScreen extends StatelessWidget {
   const _NoOrderScreen();
-
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد طلبات',
-          message: 'لا يوجد طلب متاح لهذه العملية.',
-          kind: ResultKind.empty,
-        ),
-      );
+  Widget build(BuildContext context) => const Scaffold(body: ResultStateView(title: 'لا توجد طلبات', message: 'لا يوجد طلب متاح لهذه العملية.', kind: ResultKind.empty));
 }
