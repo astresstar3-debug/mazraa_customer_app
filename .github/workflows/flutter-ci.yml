@@ -76,28 +76,7 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
-          script: |
-            flutter devices
-
-            SCREENSHOT_EXIT=0
-            flutter drive --no-dds --dart-define=REFERENCE_VISUAL_TEST=true --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554 || SCREENSHOT_EXIT=$?
-
-            echo "Installing the standalone APK built from lib/main.dart..."
-            adb install -r build/installable/mazraa-app-debug.apk
-            adb shell am force-stop com.example.mazraa_customer_app
-            adb logcat -c
-            adb shell monkey -p com.example.mazraa_customer_app -c android.intent.category.LAUNCHER 1
-            sleep 8
-
-            APP_PID="$(adb shell pidof com.example.mazraa_customer_app | tr -d '\r')"
-            if [ -z "$APP_PID" ]; then
-              echo "Standalone app exited during startup. Recent crash log:"
-              adb logcat -d -t 600 | grep -E "AndroidRuntime|FATAL EXCEPTION|com.example.mazraa_customer_app|flutter" || true
-              exit 1
-            fi
-
-            echo "Standalone app is still running after startup smoke test. PID=$APP_PID"
-            exit "$SCREENSHOT_EXIT"
+          script: bash .github/scripts/emulator_capture.sh
 
       - name: Ensure standalone APK exists
         if: always()
