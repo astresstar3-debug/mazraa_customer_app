@@ -204,7 +204,7 @@ void main() {
       controller.isAuthenticated,
       isTrue,
       reason:
-          'The disposable integration-test account must authenticate before protected screens are captured.',
+          'The disposable visual-test session must authenticate before protected screens are captured.',
     );
   }
 
@@ -259,9 +259,12 @@ void main() {
       '/auctions': 'auctions-list',
       '/auction-filter': 'auction-filter',
       '/auction-details': 'auction-details',
+      '/auction-details-crop': 'auction-details-crop',
+      '/auction-details-equipment': 'auction-details-equipment',
       '/auction-gallery': 'auction-gallery',
       '/auction-bid': 'auction-bid',
       '/auction-bid-confirm': 'auction-bid-confirm',
+      '/auction-settlement': 'auction-settlement',
       '/auction-success': 'auction-success',
       '/auction-won': 'auction-won',
       '/auction-ended': 'auction-ended',
