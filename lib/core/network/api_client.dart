@@ -23,6 +23,10 @@ class ApiClient {
   String? accessToken;
   String? refreshToken;
 
+  int _activeRequestCount = 0;
+  int get activeRequestCount => _activeRequestCount;
+  bool get hasPendingRequests => _activeRequestCount > 0;
+
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send('GET', path, query: query);
 
@@ -40,24 +44,29 @@ class ApiClient {
     required Map<String, String> files,
     Map<String, String> fields = const {},
   }) async {
-    final uri = Uri.parse('$baseUrl/${path.replaceFirst(RegExp(r'^/+'), '')}');
-    final request = http.MultipartRequest('POST', uri)
-      ..headers[HttpHeaders.acceptHeader] = 'application/json'
-      ..fields.addAll(fields);
-    final token = accessToken;
-    if (token != null && token.isNotEmpty) {
-      request.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
+    _activeRequestCount++;
+    try {
+      final uri = Uri.parse('$baseUrl/${path.replaceFirst(RegExp(r'^/+'), '')}');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers[HttpHeaders.acceptHeader] = 'application/json'
+        ..fields.addAll(fields);
+      final token = accessToken;
+      if (token != null && token.isNotEmpty) {
+        request.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
+      }
+      for (final entry in files.entries) {
+        request.files.add(await http.MultipartFile.fromPath(entry.key, entry.value));
+      }
+      final response = await request.send();
+      final text = await response.stream.bytesToString();
+      final decoded = _decode(text);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(_message(decoded), statusCode: response.statusCode);
+      }
+      return decoded;
+    } finally {
+      _activeRequestCount--;
     }
-    for (final entry in files.entries) {
-      request.files.add(await http.MultipartFile.fromPath(entry.key, entry.value));
-    }
-    final response = await request.send();
-    final text = await response.stream.bytesToString();
-    final decoded = _decode(text);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(_message(decoded), statusCode: response.statusCode);
-    }
-    return decoded;
   }
 
   Future<dynamic> _send(
@@ -66,27 +75,34 @@ class ApiClient {
     Object? body,
     Map<String, dynamic>? query,
   }) async {
-    final base = Uri.parse('$baseUrl/${path.replaceFirst(RegExp(r'^/+'), '')}');
-    final uri = base.replace(
-      queryParameters: query?.map((key, value) => MapEntry(key, value == null ? '' : '$value')),
-    );
-    final request = await _client.openUrl(method, uri);
-    request.headers.set(HttpHeaders.acceptHeader, 'application/json');
-    final token = accessToken;
-    if (token != null && token.isNotEmpty) {
-      request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
+    _activeRequestCount++;
+    try {
+      final base = Uri.parse('$baseUrl/${path.replaceFirst(RegExp(r'^/+'), '')}');
+      final uri = base.replace(
+        queryParameters: query?.map(
+          (key, value) => MapEntry(key, value == null ? '' : '$value'),
+        ),
+      );
+      final request = await _client.openUrl(method, uri);
+      request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+      final token = accessToken;
+      if (token != null && token.isNotEmpty) {
+        request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $token');
+      }
+      if (body != null) {
+        request.headers.contentType = ContentType.json;
+        request.write(jsonEncode(body));
+      }
+      final response = await request.close();
+      final text = await utf8.decoder.bind(response).join();
+      final decoded = _decode(text);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(_message(decoded), statusCode: response.statusCode);
+      }
+      return decoded;
+    } finally {
+      _activeRequestCount--;
     }
-    if (body != null) {
-      request.headers.contentType = ContentType.json;
-      request.write(jsonEncode(body));
-    }
-    final response = await request.close();
-    final text = await utf8.decoder.bind(response).join();
-    final decoded = _decode(text);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(_message(decoded), statusCode: response.statusCode);
-    }
-    return decoded;
   }
 
   dynamic _decode(String text) {
@@ -112,7 +128,9 @@ class ApiClient {
 }
 
 Map<String, dynamic> jsonMap(dynamic value) =>
-    value is Map<String, dynamic> ? value : Map<String, dynamic>.from(value as Map);
+    value is Map<String, dynamic>
+        ? value
+        : Map<String, dynamic>.from(value as Map);
 
 dynamic jsonValue(Map<String, dynamic> map, String key) {
   if (map.containsKey(key)) return map[key];
