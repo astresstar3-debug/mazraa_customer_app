@@ -29,20 +29,25 @@ class _ConnectedPhoneVerificationScreenState
   }
 
   Future<void> _send() async {
-    if (phone.text.trim().isEmpty) {
+    final value = phone.text.trim();
+    if (value.isEmpty) {
       setState(() => error = 'أدخل رقم الهاتف أولًا.');
       return;
     }
+
     setState(() {
       loading = true;
       error = null;
     });
+
     try {
-      await AppScope.of(context).authRepository.requestPhoneOtp(phone.text);
+      await AppScope.of(context).authRepository.requestPhoneOtp(value);
       if (mounted) setState(() => sent = true);
     } catch (e) {
       if (mounted) {
-        setState(() => error = e is ApiException ? e.message : 'تعذر إرسال الرمز.');
+        setState(
+          () => error = e is ApiException ? e.message : 'تعذر إرسال الرمز.',
+        );
       }
     } finally {
       if (mounted) setState(() => loading = false);
@@ -54,22 +59,26 @@ class _ConnectedPhoneVerificationScreenState
       setState(() => error = 'أدخل رمز التحقق.');
       return;
     }
+
     setState(() {
       loading = true;
       error = null;
     });
+
     final app = AppScope.of(context);
     try {
       final session = await app.authRepository.verifyPhoneOtp(
-        phone: phone.text,
-        code: code.text,
+        phone: phone.text.trim(),
+        code: code.text.trim(),
       );
       await app.applyAuthenticatedSession(session);
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
     } catch (e) {
       if (mounted) {
-        setState(() => error = e is ApiException ? e.message : 'تعذر التحقق من الرمز.');
+        setState(
+          () => error = e is ApiException ? e.message : 'تعذر التحقق من الرمز.',
+        );
       }
     } finally {
       if (mounted) setState(() => loading = false);
@@ -81,117 +90,108 @@ class _ConnectedPhoneVerificationScreenState
         backgroundColor: AppColors.ivory,
         body: SafeArea(
           child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    const PositionedDirectional(
-                      bottom: 0,
-                      start: 0,
-                      end: 0,
-                      child: _VerificationLandscape(),
-                    ),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(22, 10, 22, 24),
+            builder: (context, constraints) {
+              final compact = constraints.maxHeight < 820;
+              final heroHeight = compact ? 180.0 : 210.0;
+              final bottomClearance = compact ? 118.0 : 150.0;
+
+              return Stack(
+                children: [
+                  const PositionedDirectional(
+                    bottom: 0,
+                    start: 0,
+                    end: 0,
+                    child: IgnorePointer(child: _VerificationLandscape()),
+                  ),
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsetsDirectional.fromSTEB(22, 8, 22, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          SizedBox(
-                            height: 100,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Align(
-                                  alignment: AlignmentDirectional.centerEnd,
-                                  child: const AppLogo(size: 88, showName: true),
-                                ),
-                                const Center(
-                                  child: Text(
-                                    'التحقق من رقم الجوال',
-                                    style: TextStyle(
-                                      color: AppColors.forestDark,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: AlignmentDirectional.centerStart,
-                                  child: IconButton(
-                                    onPressed: () => Navigator.maybePop(context),
-                                    icon: const Icon(
-                                      Icons.arrow_back_ios_new_rounded,
-                                      color: AppColors.forestDark,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          const _VerificationHero(),
-                          const SizedBox(height: 24),
+                          _VerificationHeader(compact: compact),
+                          SizedBox(height: compact ? 8 : 16),
+                          _VerificationHero(height: heroHeight),
+                          SizedBox(height: compact ? 10 : 18),
                           Text(
                             sent ? 'أدخل رمز التحقق' : 'تحقق من رقم جوالك',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.forestDark,
-                              fontSize: 34,
+                              fontSize: compact ? 28 : 32,
                               height: 1.15,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Text(
                             sent
                                 ? 'أرسلنا الرمز إلى ${phone.text.trim()}'
                                 : 'أدخل رقم الجوال لنرسل إليك رمز التحقق',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFF7E9475),
-                              fontSize: 15,
+                            style: TextStyle(
+                              color: const Color(0xFF7E9475),
+                              fontSize: compact ? 13 : 14.5,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 30),
+                          SizedBox(height: compact ? 18 : 24),
                           if (!sent) ...[
                             _VerificationField(
                               child: TextField(
                                 controller: phone,
                                 keyboardType: TextInputType.phone,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) {
+                                  if (!loading) _send();
+                                },
                                 textAlign: TextAlign.center,
                                 decoration: const InputDecoration(
                                   hintText: 'رقم الجوال',
-                                  hintStyle: TextStyle(color: Color(0xFF909282), fontSize: 15),
-                                  prefixIcon: Icon(Icons.phone_outlined, color: AppColors.forestDark),
+                                  hintStyle: TextStyle(
+                                    color: Color(0xFF909282),
+                                    fontSize: 14,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.phone_outlined,
+                                    color: AppColors.forestDark,
+                                  ),
                                   border: InputBorder.none,
                                   enabledBorder: InputBorder.none,
                                   focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 18),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: compact ? 16 : 21),
                             _VerificationButton(
-                              label: loading ? 'جاري الإرسال...' : 'إرسال رمز التحقق',
+                              label: loading
+                                  ? 'جاري الإرسال...'
+                                  : 'إرسال رمز التحقق',
                               onPressed: loading ? null : _send,
                             ),
                           ] else ...[
                             _OtpBoxes(controller: code),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            SizedBox(height: compact ? 12 : 18),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 4,
                               children: [
-                                const Icon(Icons.schedule_rounded, color: AppColors.terracotta, size: 26),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'إعادة الإرسال خلال',
-                                  style: TextStyle(color: AppColors.forestDark, fontSize: 14, fontWeight: FontWeight.w700),
+                                const Icon(
+                                  Icons.schedule_rounded,
+                                  color: AppColors.terracotta,
+                                  size: 23,
                                 ),
-                                const SizedBox(width: 8),
+                                const Text(
+                                  'لم يصلك الرمز؟',
+                                  style: TextStyle(
+                                    color: AppColors.forestDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                                 TextButton(
                                   onPressed: loading ? null : _send,
                                   child: const Text(
@@ -206,59 +206,114 @@ class _ConnectedPhoneVerificationScreenState
                               ],
                             ),
                             TextButton(
-                              onPressed: () => setState(() {
-                                sent = false;
-                                code.clear();
-                              }),
+                              onPressed: loading
+                                  ? null
+                                  : () => setState(() {
+                                        sent = false;
+                                        code.clear();
+                                        error = null;
+                                      }),
                               child: const Text(
                                 'تغيير رقم الجوال',
                                 style: TextStyle(
                                   color: AppColors.forestDark,
-                                  fontSize: 14,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w900,
                                   decoration: TextDecoration.underline,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 18),
+                            SizedBox(height: compact ? 8 : 12),
                             _VerificationButton(
                               label: loading ? 'جاري التحقق...' : 'متابعة',
                               onPressed: loading ? null : _verify,
                             ),
                           ],
                           if (error != null) ...[
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             Text(
                               error!,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: AppColors.error, fontSize: 12),
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ],
-                          const SizedBox(height: 190),
+                          SizedBox(height: bottomClearance),
                         ],
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+}
+
+class _VerificationHeader extends StatelessWidget {
+  const _VerificationHeader({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: compact ? 74 : 88,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: AppLogo(size: compact ? 62 : 74, showName: true),
+            ),
+            Center(
+              child: Text(
+                'التحقق من رقم الجوال',
+                style: TextStyle(
+                  color: AppColors.forestDark,
+                  fontSize: compact ? 18 : 20,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
-          ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: IconButton(
+                onPressed: () => Navigator.maybePop(context),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.forestDark,
+                  size: 23,
+                ),
+              ),
+            ),
+          ],
         ),
       );
 }
 
 class _VerificationField extends StatelessWidget {
   const _VerificationField({required this.child});
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 66,
+        height: 62,
         decoration: BoxDecoration(
           color: const Color(0xFFFFFEFA),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: const Color(0xFFE5DDCC)),
-          boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 14, offset: Offset(0, 5))],
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0D000000),
+              blurRadius: 14,
+              offset: Offset(0, 5),
+            ),
+          ],
         ),
         child: child,
       );
@@ -266,6 +321,7 @@ class _VerificationField extends StatelessWidget {
 
 class _OtpBoxes extends StatefulWidget {
   const _OtpBoxes({required this.controller});
+
   final TextEditingController controller;
 
   @override
@@ -273,6 +329,8 @@ class _OtpBoxes extends StatefulWidget {
 }
 
 class _OtpBoxesState extends State<_OtpBoxes> {
+  final FocusNode _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -282,80 +340,111 @@ class _OtpBoxesState extends State<_OtpBoxes> {
   @override
   void dispose() {
     widget.controller.removeListener(_changed);
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _changed() => setState(() {});
+  void _changed() {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     final value = widget.controller.text;
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).requestFocus(_focusNode),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Opacity(
-            opacity: 0,
-            child: TextField(
-              controller: widget.controller,
-              focusNode: _focusNode,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              autofocus: false,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(counterText: ''),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(4, (index) {
-              final digit = index < value.length ? value[index] : '';
-              return Container(
-                width: 64,
-                height: 72,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFFEFA),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: const Color(0xFFE4D9C4), width: 1.3),
-                  boxShadow: const [BoxShadow(color: Color(0x09000000), blurRadius: 10, offset: Offset(0, 4))],
-                ),
-                child: Text(
-                  digit,
-                  style: const TextStyle(
-                    color: AppColors.forestDark,
-                    fontSize: 29,
-                    fontWeight: FontWeight.w900,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        final boxWidth = ((constraints.maxWidth - (gap * 3)) / 4)
+            .clamp(52.0, 68.0);
+
+        return GestureDetector(
+          onTap: () => _focusNode.requestFocus(),
+          behavior: HitTestBehavior.opaque,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 1,
+                height: 1,
+                child: Opacity(
+                  opacity: 0,
+                  child: TextField(
+                    controller: widget.controller,
+                    focusNode: _focusNode,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(counterText: ''),
                   ),
                 ),
-              );
-            }),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(4, (index) {
+                  final digit = index < value.length ? value[index] : '';
+                  return Container(
+                    width: boxWidth,
+                    height: 66,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFEFA),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: digit.isEmpty
+                            ? const Color(0xFFE4D9C4)
+                            : AppColors.forest,
+                        width: 1.3,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x09000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      digit,
+                      style: const TextStyle(
+                        color: AppColors.forestDark,
+                        fontSize: 27,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
-
-  final FocusNode _focusNode = FocusNode();
 }
 
 class _VerificationButton extends StatelessWidget {
   const _VerificationButton({required this.label, required this.onPressed});
+
   final String label;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 64,
+        height: 60,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.centerRight,
             end: Alignment.centerLeft,
             colors: [Color(0xFF0A4728), Color(0xFF226A3D)],
           ),
-          borderRadius: BorderRadius.circular(22),
-          boxShadow: const [BoxShadow(color: Color(0x160D4328), blurRadius: 17, offset: Offset(0, 7))],
+          borderRadius: BorderRadius.circular(21),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x160D4328),
+              blurRadius: 17,
+              offset: Offset(0, 7),
+            ),
+          ],
         ),
         child: FilledButton(
           onPressed: onPressed,
@@ -363,20 +452,37 @@ class _VerificationButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             disabledBackgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(21),
+            ),
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
               PositionedDirectional(
                 start: 9,
-                child: Icon(Icons.eco_rounded, size: 31, color: Colors.white.withValues(alpha: .16)),
+                child: Icon(
+                  Icons.eco_rounded,
+                  size: 29,
+                  color: Colors.white.withValues(alpha: .16),
+                ),
               ),
               PositionedDirectional(
                 end: 9,
-                child: Icon(Icons.eco_rounded, size: 31, color: Colors.white.withValues(alpha: .14)),
+                child: Icon(
+                  Icons.eco_rounded,
+                  size: 29,
+                  color: Colors.white.withValues(alpha: .14),
+                ),
               ),
-              Text(label, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ],
           ),
         ),
@@ -384,61 +490,98 @@ class _VerificationButton extends StatelessWidget {
 }
 
 class _VerificationHero extends StatelessWidget {
-  const _VerificationHero();
+  const _VerificationHero({required this.height});
+
+  final double height;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 230,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 200,
-              height: 200,
-              decoration: const BoxDecoration(color: Color(0xFFF7EEDB), shape: BoxShape.circle),
+  Widget build(BuildContext context) {
+    final scale = height / 210;
+    return SizedBox(
+      height: height,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 180 * scale,
+            height: 180 * scale,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF7EEDB),
+              shape: BoxShape.circle,
             ),
-            PositionedDirectional(
-              start: 42,
-              bottom: 35,
-              child: Transform.rotate(
-                angle: -.48,
-                child: const Icon(Icons.eco_rounded, size: 88, color: Color(0xFF38693F)),
+          ),
+          PositionedDirectional(
+            start: 46,
+            bottom: 25,
+            child: Transform.rotate(
+              angle: -.48,
+              child: Icon(
+                Icons.eco_rounded,
+                size: 78 * scale,
+                color: const Color(0xFF38693F),
               ),
             ),
-            PositionedDirectional(
-              end: 42,
-              bottom: 34,
-              child: Transform.rotate(
-                angle: .48,
-                child: const Icon(Icons.eco_rounded, size: 88, color: Color(0xFF38693F)),
+          ),
+          PositionedDirectional(
+            end: 46,
+            bottom: 25,
+            child: Transform.rotate(
+              angle: .48,
+              child: Icon(
+                Icons.eco_rounded,
+                size: 78 * scale,
+                color: const Color(0xFF38693F),
               ),
             ),
-            Container(
-              width: 112,
-              height: 112,
-              decoration: BoxDecoration(
-                color: const Color(0xFF28613C),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: const [BoxShadow(color: Color(0x170D4328), blurRadius: 14, offset: Offset(0, 6))],
-              ),
-              alignment: Alignment.center,
-              child: const Icon(Icons.key_rounded, size: 56, color: Color(0xFFF7EDD4)),
-            ),
-            Positioned(
-              top: 35,
-              child: Container(
-                width: 60,
-                height: 72,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.terracotta, width: 11),
-                  borderRadius: BorderRadius.circular(40),
+          ),
+          Container(
+            width: 100 * scale,
+            height: 100 * scale,
+            decoration: BoxDecoration(
+              color: const Color(0xFF28613C),
+              borderRadius: BorderRadius.circular(22 * scale),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x170D4328),
+                  blurRadius: 14,
+                  offset: Offset(0, 6),
                 ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.key_rounded,
+              size: 50 * scale,
+              color: const Color(0xFFF7EDD4),
+            ),
+          ),
+          Positioned(
+            top: 27 * scale,
+            child: Container(
+              width: 54 * scale,
+              height: 66 * scale,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: AppColors.terracotta,
+                  width: 10 * scale,
+                ),
+                borderRadius: BorderRadius.circular(38),
               ),
             ),
-            const PositionedDirectional(top: 65, end: 72, child: Icon(Icons.auto_awesome, color: AppColors.terracotta, size: 26)),
-          ],
-        ),
-      );
+          ),
+          PositionedDirectional(
+            top: 52 * scale,
+            end: 76,
+            child: Icon(
+              Icons.auto_awesome,
+              color: AppColors.terracotta,
+              size: 23 * scale,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _VerificationLandscape extends StatelessWidget {
@@ -446,24 +589,34 @@ class _VerificationLandscape extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 170,
+        height: 150,
         child: Stack(
           children: [
-            Positioned.fill(child: CustomPaint(painter: _VerificationLandscapePainter())),
+            const Positioned.fill(
+              child: CustomPaint(painter: _VerificationLandscapePainter()),
+            ),
             PositionedDirectional(
               start: -30,
-              bottom: -20,
+              bottom: -22,
               child: Transform.rotate(
                 angle: -.25,
-                child: Icon(Icons.eco_rounded, size: 135, color: const Color(0xFF688557).withValues(alpha: .62)),
+                child: Icon(
+                  Icons.eco_rounded,
+                  size: 122,
+                  color: const Color(0xFF688557).withValues(alpha: .58),
+                ),
               ),
             ),
             PositionedDirectional(
               end: -25,
-              bottom: -12,
+              bottom: -15,
               child: Transform.rotate(
                 angle: .32,
-                child: Icon(Icons.eco_rounded, size: 125, color: const Color(0xFF688557).withValues(alpha: .60)),
+                child: Icon(
+                  Icons.eco_rounded,
+                  size: 115,
+                  color: const Color(0xFF688557).withValues(alpha: .56),
+                ),
               ),
             ),
           ],
@@ -476,13 +629,25 @@ class _VerificationLandscapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cream = Paint()..color = const Color(0xFFF1E8CD).withValues(alpha: .82);
-    final green = Paint()..color = const Color(0xFFB6C09A).withValues(alpha: .62);
+    final cream = Paint()
+      ..color = const Color(0xFFF1E8CD).withValues(alpha: .82);
+    final green = Paint()
+      ..color = const Color(0xFFB6C09A).withValues(alpha: .62);
 
     final p1 = Path()
       ..moveTo(0, size.height * .70)
-      ..quadraticBezierTo(size.width * .25, size.height * .47, size.width * .48, size.height * .72)
-      ..quadraticBezierTo(size.width * .72, size.height * .92, size.width, size.height * .58)
+      ..quadraticBezierTo(
+        size.width * .25,
+        size.height * .47,
+        size.width * .48,
+        size.height * .72,
+      )
+      ..quadraticBezierTo(
+        size.width * .72,
+        size.height * .92,
+        size.width,
+        size.height * .58,
+      )
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
@@ -490,7 +655,12 @@ class _VerificationLandscapePainter extends CustomPainter {
 
     final p2 = Path()
       ..moveTo(size.width * .48, size.height)
-      ..quadraticBezierTo(size.width * .67, size.height * .72, size.width, size.height * .76)
+      ..quadraticBezierTo(
+        size.width * .67,
+        size.height * .72,
+        size.width,
+        size.height * .76,
+      )
       ..lineTo(size.width, size.height)
       ..close();
     canvas.drawPath(p2, green);
