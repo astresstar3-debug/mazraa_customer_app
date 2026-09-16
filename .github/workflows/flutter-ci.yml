@@ -15,6 +15,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  design-references:
+    name: Upload design references
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload home and coupon design references
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-design-references
+          path: |
+            AppImages/الرئيسية.png
+            AppImages/الكوبون.png
+          if-no-files-found: error
+          retention-days: 7
+
   analyze-build:
     name: Analyze and build debug APK
     runs-on: ubuntu-latest
