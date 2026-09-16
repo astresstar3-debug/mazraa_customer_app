@@ -12,8 +12,8 @@ class AppController extends ChangeNotifier {
     repository = MarketplaceRepository(client);
     authRepository = AuthRepository(client);
     pushNotifications = PushNotificationService(client)
-      ..onForegroundMessage = _handlePush
-      ..onOpenedMessage = _handlePush;
+      ..onForegroundMessage = _handleForegroundPush
+      ..onOpenedMessage = _handleOpenedPush;
   }
 
   final ApiClient client;
@@ -34,6 +34,7 @@ class AppController extends ChangeNotifier {
   String? errorMessage;
   AuthSession? session;
   RemoteMessage? lastPushMessage;
+  RemoteMessage? lastOpenedPushMessage;
 
   List<Product> get products => List.unmodifiable(_products);
   List<Auction> get auctions => List.unmodifiable(_auctions);
@@ -76,7 +77,7 @@ class AppController extends ChangeNotifier {
         await _afterAuthenticated();
       }
       final initialMessage = await pushNotifications.getInitialMessage();
-      if (initialMessage != null) _handlePush(initialMessage);
+      if (initialMessage != null) _handleOpenedPush(initialMessage);
     } on Object catch (error) {
       errorMessage = _message(error);
     } finally {
@@ -85,9 +86,22 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  void _handlePush(RemoteMessage message) {
+  void _handleForegroundPush(RemoteMessage message) {
     lastPushMessage = message;
     notifyListeners();
+  }
+
+  void _handleOpenedPush(RemoteMessage message) {
+    lastPushMessage = message;
+    lastOpenedPushMessage = message;
+    notifyListeners();
+  }
+
+  void clearOpenedPush(RemoteMessage message) {
+    if (identical(lastOpenedPushMessage, message) ||
+        lastOpenedPushMessage?.messageId == message.messageId) {
+      lastOpenedPushMessage = null;
+    }
   }
 
   Future<void> _afterAuthenticated() async {
