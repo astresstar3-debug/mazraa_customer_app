@@ -1,0 +1,23 @@
+name: Export AppImages References Once
+
+on:
+  push:
+    branches:
+      - chatgpt/ci-emulator
+    paths:
+      - .github/workflows/reference-artifacts.yml
+
+jobs:
+  export-references:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload every UI reference image
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-all-design-references
+          path: AppImages/**/*.png
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
