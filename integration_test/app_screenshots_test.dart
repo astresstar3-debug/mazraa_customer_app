@@ -8,6 +8,7 @@ import 'package:mazraa_customer_app/main.dart' as app;
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final captureFailures = <String>[];
 
   bool hasIndeterminateLoadingIndicators() {
     final indicators = find.byWidgetPredicate((widget) {
@@ -36,8 +37,7 @@ void main() {
       try {
         await precacheImage(widget.image, element).timeout(perImageTimeout);
       } catch (_) {
-        // Failed remote images are allowed only after the app resolves them to
-        // its final error/placeholder state. Never capture while still pending.
+        // Capture only after the image has reached its final placeholder/error state.
       }
     }
     await tester.pump(const Duration(milliseconds: 700));
@@ -100,17 +100,38 @@ void main() {
     );
   }
 
+  void drainUiExceptions(WidgetTester tester) {
+    while (tester.takeException() != null) {
+      // Drain already-recorded framework errors so one bad screen cannot block
+      // diagnostics for every later screen. The error is still reported below.
+    }
+  }
+
   Future<void> capture(
     WidgetTester tester,
     String name, {
     Duration timeout = const Duration(seconds: 45),
   }) async {
-    await waitUntilScreenReady(
-      tester,
-      screenName: name,
-      timeout: timeout,
-    );
-    await binding.takeScreenshot(name);
+    try {
+      await waitUntilScreenReady(
+        tester,
+        screenName: name,
+        timeout: timeout,
+      );
+    } catch (error, stackTrace) {
+      captureFailures.add('$name: $error');
+      debugPrint('VISUAL_CAPTURE_FAILURE [$name] $error');
+      debugPrintStack(stackTrace: stackTrace);
+      drainUiExceptions(tester);
+      await tester.pump(const Duration(milliseconds: 250));
+    }
+
+    try {
+      await binding.takeScreenshot(name);
+    } catch (error) {
+      captureFailures.add('$name screenshot: $error');
+      debugPrint('SCREENSHOT_WRITE_FAILURE [$name] $error');
+    }
   }
 
   Future<void> openRoute(
@@ -130,8 +151,15 @@ void main() {
     Map<String, String> routes,
   ) async {
     for (final entry in routes.entries) {
-      await openRoute(tester, entry.key);
-      await capture(tester, entry.value);
+      try {
+        await openRoute(tester, entry.key);
+        await capture(tester, entry.value);
+      } catch (error, stackTrace) {
+        captureFailures.add('${entry.value}: route/capture failed: $error');
+        debugPrint('ROUTE_CAPTURE_FAILURE [${entry.key}] $error');
+        debugPrintStack(stackTrace: stackTrace);
+        drainUiExceptions(tester);
+      }
     }
   }
 
@@ -294,5 +322,12 @@ void main() {
       '/delete-account': 'delete-account',
       '/offline': 'offline',
     });
+
+    if (captureFailures.isNotEmpty) {
+      throw TestFailure(
+        'Visual capture completed with ${captureFailures.length} failure(s):\n'
+        '${captureFailures.join('\n')}',
+      );
+    }
   });
 }
