@@ -18,9 +18,9 @@ import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
-import '../../features/marketplace/presentation/connected_favorites_screen.dart';
 import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
 import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
+import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../reference/reference_demo_data.dart';
@@ -38,18 +38,23 @@ abstract final class AppRouter {
       '/otp' => const ConnectedPhoneVerificationScreen(),
       '/location-permission' => const LocationPermissionScreen(),
       '/location' => const LocationScreen(),
-      '/categories' => const ConnectedCategoriesScreen(),
-      '/search' => const ConnectedSearchScreen(),
-      '/products' => const ConnectedProductListScreen(),
-      '/offers' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
+      '/categories' => const ReferenceCategoriesScreen(),
+      '/search' => const ReferenceSearchScreen(),
+      '/search-results' => const ReferenceSearchResultsScreen(),
+      '/search-empty' => const ReferenceEmptySearchScreen(),
+      '/products' => const ReferenceProductListScreen(),
+      '/product-list-view' => const ReferenceProductListScreen(forceList: true),
+      '/offers' => const ReferenceOffersScreen(),
+      '/product-filter' => const ReferenceProductFilterScreen(),
       '/coupon' => const ConnectedCouponsScreen(),
       '/product-details' => const _FirstProductScreen(),
-      '/product-medicine' => const _FirstProductScreen(index: 7),
-      '/product-feed' => const _FirstProductScreen(index: 3),
+      '/product-medicine' => const _FirstProductScreen(index: 5),
+      '/product-feed' => const _FirstProductScreen(index: 2),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
-      '/favorites' => const ConnectedFavoritesScreen(),
-      '/favorites-empty' => const ConnectedFavoritesScreen(forceEmpty: true),
+      '/favorites' => const ReferenceFavoritesScreen(),
+      '/favorites-empty' => const ReferenceFavoritesScreen(empty: true),
+      '/favorites-plant-empty' => const ReferenceFavoritesScreen(plantEmpty: true),
       '/auctions' => const ConnectedAuctionListScreen(),
       '/auction-details' => const _FirstAuctionScreen(),
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
