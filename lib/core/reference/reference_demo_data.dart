@@ -142,9 +142,9 @@ abstract final class ReferenceDemoData {
   ];
 
   static List<CartLine> get cart => <CartLine>[
-        const CartLine(products[0], 1),
-        const CartLine(products[2], 1),
-        const CartLine(products[1], 2),
+        CartLine(products[0], 1),
+        CartLine(products[2], 1),
+        CartLine(products[1], 2),
       ];
 
   static List<AppOrder> get orders => <AppOrder>[
@@ -152,14 +152,14 @@ abstract final class ReferenceDemoData {
           id: '24581',
           status: 'قيد التوصيل',
           total: 5240,
-          products: const [products[0], products[1]],
+          products: [products[0], products[1]],
           date: DateTime(2026, 9, 16),
         ),
         AppOrder(
           id: '24563',
           status: 'مكتمل',
           total: 1500,
-          products: const [products[3]],
+          products: [products[3]],
           date: DateTime(2026, 9, 11),
         ),
       ];
