@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - new
+      - chatgpt/ci-emulator
   workflow_dispatch:
 
 concurrency:
@@ -17,7 +18,7 @@ jobs:
   verify-emulator:
     name: Analyze, run Android emulator, and capture screenshots
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
 
     steps:
       - name: Checkout repository
@@ -35,10 +36,21 @@ jobs:
           channel: beta
           cache: true
 
-      - name: Cache Gradle dependencies and build state
+      - name: Cache Gradle dependencies
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-home-cache-cleanup: true
+
+      - name: Cache Flutter/Android incremental build state
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            build
+            android/.gradle
+          key: mazraa-flutter-build-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'android/settings.gradle.kts', 'android/app/build.gradle.kts', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            mazraa-flutter-build-${{ runner.os }}-
 
       - name: Resolve dependencies
         run: flutter pub get
@@ -52,7 +64,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Run app once on Android emulator and capture screenshots
+      - name: Run app once on Android emulator and capture complete screenshots
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 32
@@ -81,6 +93,15 @@ jobs:
           name: mazraa-screen-screenshots
           path: screenshots/**/*.png
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload all reference designs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-design-references
+          path: AppImages/**/*.png
+          if-no-files-found: error
           retention-days: 7
 
       - name: Upload integration response
