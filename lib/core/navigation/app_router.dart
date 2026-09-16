@@ -17,6 +17,7 @@ import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
+import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
 import '../../features/marketplace/presentation/reference_product_screens.dart';
 import '../../features/shell/main_shell.dart';
@@ -36,23 +37,23 @@ abstract final class AppRouter {
       '/otp' => const ConnectedPhoneVerificationScreen(),
       '/location-permission' => const LocationPermissionScreen(),
       '/location' => const LocationScreen(),
-      '/categories' => const ReferenceCategoriesScreen(),
-      '/search' => const ReferenceSearchScreen(),
+      '/categories' => const MatchedCategoriesScreen(),
+      '/search' => const MatchedSearchScreen(),
       '/search-results' => const ReferenceSearchResultsScreen(),
-      '/search-empty' => const ReferenceEmptySearchScreen(),
+      '/search-empty' => const MatchedEmptySearchScreen(),
       '/products' => const ReferenceProductListScreen(),
       '/product-list-view' => const ReferenceProductListScreen(forceList: true),
       '/offers' => const ReferenceOffersScreen(),
-      '/product-filter' => const ReferenceProductFilterScreen(),
+      '/product-filter' => const MatchedProductFilterScreen(),
       '/coupon' => const ConnectedCouponsScreen(),
       '/product-details' => const _FirstProductScreen(),
       '/product-medicine' => const _FirstProductScreen(index: 5),
       '/product-feed' => const _FirstProductScreen(index: 2),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
-      '/favorites' => const ReferenceFavoritesScreen(),
-      '/favorites-empty' => const ReferenceFavoritesScreen(empty: true),
-      '/favorites-plant-empty' => const ReferenceFavoritesScreen(plantEmpty: true),
+      '/favorites' => const MatchedFavoritesScreen(),
+      '/favorites-empty' => const MatchedFavoritesScreen(empty: true),
+      '/favorites-plant-empty' => const MatchedFavoritesScreen(plantEmpty: true),
       '/auctions' => const ReferenceAuctionListScreen(),
       '/auction-filter' => const ReferenceAuctionFilterScreen(),
       '/auction-details' => ReferenceAuctionDetailsScreen(auction: ReferenceDemoData.auctions.first),
