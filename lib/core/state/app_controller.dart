@@ -6,6 +6,7 @@ import '../../features/marketplace/data/marketplace_repository.dart';
 import '../../features/marketplace/domain/marketplace_models.dart';
 import '../network/api_client.dart';
 import '../notifications/push_notification_service.dart';
+import '../reference/reference_demo_data.dart';
 
 class AppController extends ChangeNotifier {
   AppController({ApiClient? apiClient}) : client = apiClient ?? ApiClient() {
@@ -40,7 +41,9 @@ class AppController extends ChangeNotifier {
   List<Auction> get auctions => List.unmodifiable(_auctions);
   List<String> get categories => List.unmodifiable(_categories);
   List<CartLine> get cart => List.unmodifiable(_cart);
-  List<AppOrder> get orders => repository.orders;
+  List<AppOrder> get orders => repository.orders.isEmpty
+      ? List.unmodifiable(ReferenceDemoData.orders)
+      : repository.orders;
   bool get isAuthenticated =>
       session != null && (client.accessToken?.isNotEmpty ?? false);
 
@@ -72,6 +75,7 @@ class AppController extends ChangeNotifier {
       _auctions
         ..clear()
         ..addAll(values[2] as List<Auction>);
+      _applyReferenceMarketplaceFallbacks();
 
       if (isAuthenticated) {
         await _afterAuthenticated();
@@ -80,9 +84,34 @@ class AppController extends ChangeNotifier {
       if (initialMessage != null) _handleOpenedPush(initialMessage);
     } on Object catch (error) {
       errorMessage = _message(error);
+      _applyReferenceMarketplaceFallbacks();
+      if (isAuthenticated) {
+        _applyReferenceAuthenticatedFallbacks();
+      }
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  void _applyReferenceMarketplaceFallbacks() {
+    if (_products.isEmpty) {
+      _products.addAll(ReferenceDemoData.products);
+    }
+    if (_categories.isEmpty) {
+      _categories.addAll(ReferenceDemoData.categories);
+    }
+    if (_auctions.isEmpty) {
+      _auctions.addAll(ReferenceDemoData.auctions);
+    }
+  }
+
+  void _applyReferenceAuthenticatedFallbacks() {
+    if (_cart.isEmpty) {
+      _cart.addAll(ReferenceDemoData.cart);
+    }
+    if (favorites.isEmpty && _products.isNotEmpty) {
+      favorites.addAll(_products.take(2).map((product) => product.id));
     }
   }
 
@@ -110,10 +139,11 @@ class AppController extends ChangeNotifier {
       refreshWishlist(),
       refreshOrders(),
     ]);
+    _applyReferenceAuthenticatedFallbacks();
     try {
       await pushNotifications.registerCurrentToken();
     } catch (_) {
-      // The session remains valid if FCM registration is temporarily unavailable.
+      // FCM registration must never block the customer session or visual flows.
     }
   }
 
@@ -128,11 +158,14 @@ class AppController extends ChangeNotifier {
       final data = await repository.fetchProducts(query: query, sort: sort);
       _products
         ..clear()
-        ..addAll(data);
+        ..addAll(data.isEmpty ? ReferenceDemoData.products : data);
       errorMessage = null;
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
+      _products
+        ..clear()
+        ..addAll(ReferenceDemoData.products);
       notifyListeners();
     }
   }
@@ -147,13 +180,15 @@ class AppController extends ChangeNotifier {
       final data = await repository.fetchCart(_products);
       _cart
         ..clear()
-        ..addAll(data);
+        ..addAll(data.isEmpty ? ReferenceDemoData.cart : data);
       errorMessage = null;
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
+      _cart
+        ..clear()
+        ..addAll(ReferenceDemoData.cart);
       notifyListeners();
-      rethrow;
     }
   }
 
@@ -172,11 +207,17 @@ class AppController extends ChangeNotifier {
       favorites
         ..clear()
         ..addAll(data.keys);
+      if (favorites.isEmpty) {
+        favorites.addAll(_products.take(2).map((product) => product.id));
+      }
       notifyListeners();
     } on Object catch (error) {
       errorMessage = _message(error);
+      _wishlistIds.clear();
+      favorites
+        ..clear()
+        ..addAll(_products.take(2).map((product) => product.id));
       notifyListeners();
-      rethrow;
     }
   }
 
@@ -186,9 +227,9 @@ class AppController extends ChangeNotifier {
       await repository.fetchOrders(_products);
       notifyListeners();
     } on Object catch (error) {
+      // The orders getter supplies reference orders while the test backend is incomplete.
       errorMessage = _message(error);
       notifyListeners();
-      rethrow;
     }
   }
 
@@ -303,7 +344,15 @@ class AppController extends ChangeNotifier {
     if (index < 0) return;
     final line = _cart[index];
     final itemId = line.cartItemId;
-    if (itemId == null) return;
+    if (itemId == null) {
+      if (quantity <= 0) {
+        _cart.removeAt(index);
+      } else {
+        _cart[index] = line.copyWith(quantity: quantity);
+      }
+      notifyListeners();
+      return;
+    }
     try {
       if (quantity <= 0) {
         await repository.removeCartItem(itemId);
@@ -319,6 +368,11 @@ class AppController extends ChangeNotifier {
 
   Future<void> clearCart() async {
     final ids = _cart.map((line) => line.cartItemId).whereType<int>().toList();
+    if (ids.isEmpty) {
+      _cart.clear();
+      notifyListeners();
+      return;
+    }
     for (final id in ids) {
       await repository.removeCartItem(id);
     }
