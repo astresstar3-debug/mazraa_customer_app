@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../core/navigation/app_router.dart';
 import '../core/network/network_aware_asset_bundle.dart';
+import '../core/reference/reference_visual_app_controller.dart';
 import '../core/state/app_controller.dart';
 import '../core/theme/app_theme.dart';
+
+const bool _visualReferenceMode =
+    bool.fromEnvironment('REFERENCE_VISUAL_TEST', defaultValue: false);
 
 class MazraaApp extends StatefulWidget {
   const MazraaApp({super.key});
@@ -13,7 +17,9 @@ class MazraaApp extends StatefulWidget {
 }
 
 class _MazraaAppState extends State<MazraaApp> {
-  final controller = AppController();
+  late final AppController controller = _visualReferenceMode
+      ? ReferenceVisualAppController()
+      : AppController();
   final assetBundle = NetworkAwareAssetBundle();
   final navigatorKey = GlobalKey<NavigatorState>();
   String? _handledMessageId;
@@ -28,10 +34,13 @@ class _MazraaAppState extends State<MazraaApp> {
   void _handleOpenedPush() {
     final message = controller.lastOpenedPushMessage;
     if (message == null) return;
-    final id = message.messageId ?? '${message.sentTime?.millisecondsSinceEpoch}-${message.hashCode}';
+    final id = message.messageId ??
+        '${message.sentTime?.millisecondsSinceEpoch}-${message.hashCode}';
     if (_handledMessageId == id) return;
 
-    final rawRoute = '${message.data['deepLink'] ?? message.data['deep_link'] ?? message.data['route'] ?? ''}'.trim();
+    final rawRoute =
+        '${message.data['deepLink'] ?? message.data['deep_link'] ?? message.data['route'] ?? ''}'
+            .trim();
     _handledMessageId = id;
     controller.clearOpenedPush(message);
     if (rawRoute.isEmpty) return;
