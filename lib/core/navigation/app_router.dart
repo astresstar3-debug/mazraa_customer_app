@@ -25,6 +25,7 @@ import '../../features/cart/presentation/matched_cart_screens.dart';
 import '../../features/cart/presentation/matched_delivery_payment_screens.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
 import '../../features/marketplace/presentation/matched_product_screens.dart';
+import '../../features/marketplace/presentation/pixel_medicine_screen.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
 import '../../features/marketplace/presentation/reference_nav_wrappers.dart';
 import '../../features/marketplace/presentation/reference_product_screens.dart';
@@ -55,7 +56,7 @@ abstract final class AppRouter {
       '/product-filter' => const MatchedProductFilterScreen(),
       '/coupon' => const ConnectedCouponsScreen(),
       '/product-details' => const MatchedFirstProductScreen(),
-      '/product-medicine' => const MatchedMedicineProductScreen(),
+      '/product-medicine' => const PixelMedicineProductScreen(),
       '/product-feed' => const MatchedFeedProductScreen(),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
@@ -129,11 +130,18 @@ abstract final class AppRouter {
 
 class _ReviewRoute extends StatelessWidget {
   const _ReviewRoute();
+
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
     if (products.isEmpty) {
-      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا توجد بيانات تقييم متاحة.', kind: ResultKind.empty));
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد منتجات',
+          message: 'لا توجد بيانات تقييم متاحة.',
+          kind: ResultKind.empty,
+        ),
+      );
     }
     return ReferenceReviewsQuestionsScreen(product: products.first);
   }
@@ -141,11 +149,18 @@ class _ReviewRoute extends StatelessWidget {
 
 class _AskRoute extends StatelessWidget {
   const _AskRoute();
+
   @override
   Widget build(BuildContext context) {
     final products = AppScope.of(context).products;
     if (products.isEmpty) {
-      return const Scaffold(body: ResultStateView(title: 'لا توجد منتجات', message: 'لا يوجد منتج متاح لعرض الأسئلة.', kind: ResultKind.empty));
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد منتجات',
+          message: 'لا يوجد منتج متاح لعرض الأسئلة.',
+          kind: ResultKind.empty,
+        ),
+      );
     }
     return ReferenceAskQuestionScreen(product: products.first);
   }
@@ -155,6 +170,7 @@ enum _OrderAction { details, track, cancel, rate, returnOrder }
 
 class _FirstOrderActionRoute extends StatelessWidget {
   const _FirstOrderActionRoute({required this.action});
+
   final _OrderAction action;
 
   @override
@@ -181,10 +197,13 @@ class _FirstOrderActionRoute extends StatelessWidget {
 
 class _FirstInvoiceRoute extends StatelessWidget {
   const _FirstInvoiceRoute();
+
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
-    return id == null ? const MatchedInvoiceScreen() : ConnectedInvoiceScreen(orderId: id);
+    return id == null
+        ? const MatchedInvoiceScreen()
+        : ConnectedInvoiceScreen(orderId: id);
   }
 }
 
