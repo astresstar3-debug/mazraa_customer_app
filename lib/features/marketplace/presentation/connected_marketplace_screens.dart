@@ -29,9 +29,7 @@ class ConnectedCategoriesScreen extends StatelessWidget {
               )
             else
               ...categories.map((category) {
-                final count = app.products
-                    .where((product) => product.category == category)
-                    .length;
+                final count = app.products.where((p) => p.category == category).length;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 9),
                   child: SettingsTile(
@@ -91,11 +89,11 @@ class _ConnectedSearchScreenState extends State<ConnectedSearchScreen> {
     });
     try {
       final data = await AppScope.of(context).repository.fetchProducts(query: query);
-      if (!mounted) return;
-      setState(() => results = data);
+      if (mounted) setState(() => results = data);
     } catch (e) {
-      if (!mounted) return;
-      setState(() => error = e is ApiException ? e.message : 'تعذر تنفيذ البحث.');
+      if (mounted) {
+        setState(() => error = e is ApiException ? e.message : 'تعذر تنفيذ البحث.');
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -128,10 +126,8 @@ class _ConnectedSearchScreenState extends State<ConnectedSearchScreen> {
                 AppSurfaceCard(child: Text(error!, textAlign: TextAlign.center)),
               if (!loading && controller.text.trim().isEmpty)
                 const AppSurfaceCard(
-                  child: Text(
-                    'اكتب اسم المنتج أو كلمة من الوصف ثم اضغط بحث.',
-                    textAlign: TextAlign.center,
-                  ),
+                  child: Text('اكتب اسم المنتج أو كلمة من الوصف ثم اضغط بحث.',
+                      textAlign: TextAlign.center),
                 )
               else if (!loading && error == null && results.isEmpty)
                 const Padding(
@@ -139,28 +135,7 @@ class _ConnectedSearchScreenState extends State<ConnectedSearchScreen> {
                   child: Center(child: Text('لا توجد نتائج مطابقة')),
                 )
               else
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: .62,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                  ),
-                  itemCount: results.length,
-                  itemBuilder: (_, index) => ProductCard(
-                    product: results[index],
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ConnectedProductDetailsScreen(
-                          product: results[index],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                _ProductsGrid(products: results),
             ],
           ),
         ),
@@ -174,6 +149,7 @@ class ConnectedProductListScreen extends StatefulWidget {
     this.category,
     this.onlyOffers = false,
   });
+
   final String title;
   final String? category;
   final bool onlyOffers;
@@ -188,7 +164,7 @@ class _ConnectedProductListScreenState extends State<ConnectedProductListScreen>
   @override
   Widget build(BuildContext context) {
     final source = AppScope.of(context).products;
-    var products = source.where((product) {
+    final products = source.where((product) {
       if (widget.category != null && product.category != widget.category) return false;
       if (widget.onlyOffers && product.discount == null) return false;
       return true;
@@ -231,28 +207,7 @@ class _ConnectedProductListScreenState extends State<ConnectedProductListScreen>
                 child: Center(child: Text('لا توجد منتجات متاحة')),
               )
             else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: .62,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                ),
-                itemCount: products.length,
-                itemBuilder: (_, index) => ProductCard(
-                  product: products[index],
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ConnectedProductDetailsScreen(
-                        product: products[index],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              _ProductsGrid(products: products),
           ],
         ),
       ),
@@ -260,18 +215,99 @@ class _ConnectedProductListScreenState extends State<ConnectedProductListScreen>
   }
 }
 
+class _ProductsGrid extends StatelessWidget {
+  const _ProductsGrid({required this.products});
+  final List<Product> products;
+
+  @override
+  Widget build(BuildContext context) => GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: .62,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+        ),
+        itemCount: products.length,
+        itemBuilder: (_, index) => ProductCard(
+          product: products[index],
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ConnectedProductDetailsScreen(product: products[index]),
+            ),
+          ),
+        ),
+      );
+}
+
 class ConnectedProductDetailsScreen extends StatefulWidget {
   const ConnectedProductDetailsScreen({super.key, required this.product});
   final Product product;
 
   @override
-  State<ConnectedProductDetailsScreen> createState() => _ConnectedProductDetailsScreenState();
+  State<ConnectedProductDetailsScreen> createState() =>
+      _ConnectedProductDetailsScreenState();
 }
 
 class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsScreen> {
   int quantity = 1;
   int imageIndex = 0;
   bool adding = false;
+  bool loadingExtras = true;
+  String? extrasError;
+  List<Map<String, dynamic>> specs = const [];
+  List<Product> related = const [];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (loadingExtras && specs.isEmpty && related.isEmpty && extrasError == null) {
+      _loadExtras();
+    }
+  }
+
+  Future<void> _loadExtras() async {
+    final productId = int.tryParse(widget.product.id);
+    if (productId == null) {
+      setState(() {
+        loadingExtras = false;
+        extrasError = 'رقم المنتج غير صالح.';
+      });
+      return;
+    }
+    try {
+      final app = AppScope.of(context);
+      final values = await Future.wait<dynamic>([
+        app.client.get('/api/products/$productId/specs'),
+        app.client.get('/api/products/$productId/related'),
+      ]);
+      final specRows = values[0] is List
+          ? (values[0] as List).map((e) => jsonMap(e)).toList()
+          : <Map<String, dynamic>>[];
+      final relatedRows = values[1] is List ? values[1] as List : const [];
+      final known = <String, Product>{for (final p in app.products) p.id: p};
+      final relatedProducts = <Product>[];
+      for (final row in relatedRows) {
+        final map = jsonMap(row);
+        final id = '${jsonValue(map, 'id') ?? ''}';
+        final product = known[id];
+        if (product != null) relatedProducts.add(product);
+      }
+      if (!mounted) return;
+      setState(() {
+        specs = specRows;
+        related = relatedProducts;
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => extrasError = e is ApiException ? e.message : 'تعذر تحميل بيانات المنتج الإضافية.');
+      }
+    } finally {
+      if (mounted) setState(() => loadingExtras = false);
+    }
+  }
 
   Future<void> _add({bool checkout = false}) async {
     final app = AppScope.of(context);
@@ -291,10 +327,11 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
         );
       }
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(app.errorMessage ?? 'تعذر إضافة المنتج للسلة')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(app.errorMessage ?? 'تعذر إضافة المنتج للسلة')),
+        );
+      }
     } finally {
       if (mounted) setState(() => adding = false);
     }
@@ -373,7 +410,7 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: gallery.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 7),
+                  separatorBuilder: (_, __) => const SizedBox(width: 7),
                   itemBuilder: (_, index) => InkWell(
                     onTap: () => setState(() => imageIndex = index),
                     child: ClipRRect(
@@ -402,10 +439,7 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                     children: [
                       Text(
                         formatPrice(product.price),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(color: AppColors.forest),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.forest),
                       ),
                       if (product.oldPrice != null)
                         Text(
@@ -437,17 +471,6 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                 ],
               ),
             ),
-            if (product.category.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              AppSurfaceCard(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.category_outlined),
-                  title: const Text('القسم'),
-                  trailing: Text(product.category),
-                ),
-              ),
-            ],
             const SizedBox(height: 12),
             const SectionHeader(title: 'الكمية', icon: Icons.numbers_rounded),
             Align(
@@ -468,7 +491,33 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                     : product.description,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
+            const SectionHeader(title: 'المواصفات', icon: Icons.fact_check_outlined),
+            if (loadingExtras)
+              const LinearProgressIndicator()
+            else if (specs.isEmpty)
+              const AppSurfaceCard(child: Text('لا توجد مواصفات إضافية لهذا المنتج.'))
+            else
+              AppSurfaceCard(
+                child: Column(
+                  children: specs.map((spec) {
+                    final name = '${jsonValue(spec, 'name') ?? ''}';
+                    final value = '${jsonValue(spec, 'value') ?? ''}';
+                    final unit = '${jsonValue(spec, 'unit') ?? ''}';
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(name),
+                      trailing: Text('$value${unit.isEmpty ? '' : ' $unit'}'),
+                    );
+                  }).toList(),
+                ),
+              ),
+            if (extrasError != null) ...[
+              const SizedBox(height: 7),
+              Text(extrasError!, style: const TextStyle(color: AppColors.error)),
+            ],
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -476,9 +525,7 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ConnectedProductReviewsScreen(
-                          product: product,
-                        ),
+                        builder: (_) => ConnectedProductReviewsScreen(product: product),
                       ),
                     ),
                     icon: const Icon(Icons.star_outline_rounded),
@@ -491,9 +538,7 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ConnectedProductQuestionsScreen(
-                          product: product,
-                        ),
+                        builder: (_) => ConnectedProductQuestionsScreen(product: product),
                       ),
                     ),
                     icon: const Icon(Icons.help_outline_rounded),
@@ -502,6 +547,30 @@ class _ConnectedProductDetailsScreenState extends State<ConnectedProductDetailsS
                 ),
               ],
             ),
+            if (related.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const SectionHeader(title: 'منتجات مشابهة', icon: Icons.grid_view_rounded),
+              SizedBox(
+                height: 250,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: related.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, index) => SizedBox(
+                    width: 180,
+                    child: ProductCard(
+                      product: related[index],
+                      onTap: () => Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ConnectedProductDetailsScreen(product: related[index]),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
