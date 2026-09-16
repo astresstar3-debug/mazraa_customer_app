@@ -18,6 +18,7 @@ import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
 import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
 import '../../features/cart/presentation/matched_cart_screens.dart';
+import '../../features/cart/presentation/matched_delivery_payment_screens.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
 import '../../features/marketplace/presentation/matched_product_screens.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
@@ -73,13 +74,13 @@ abstract final class AppRouter {
       '/cart' => const MatchedCartScreen(),
       '/cart-empty' => const MatchedCartScreen(forceEmpty: true),
       '/checkout' => const MatchedCheckoutScreen(),
-      '/delivery-slot' => const DeliverySlotScreen(),
-      '/delivery-preferences' => const DeliveryPreferencesScreen(),
-      '/payment-methods' => const PaymentMethodsScreen(),
-      '/add-card' => const AddCardScreen(),
-      '/edit-payment' => const PaymentMethodsScreen(),
-      '/cash-on-delivery' => const CashOnDeliveryScreen(),
-      '/bank-transfer' => const BankTransferScreen(),
+      '/delivery-slot' => const MatchedDeliverySlotScreen(),
+      '/delivery-preferences' => const MatchedDeliveryPreferencesScreen(),
+      '/payment-methods' => const MatchedPaymentMethodsScreen(),
+      '/add-card' => const MatchedCardFormScreen(),
+      '/edit-payment' => const MatchedCardFormScreen(editing: true),
+      '/cash-on-delivery' => const MatchedCashOnDeliveryScreen(),
+      '/bank-transfer' => const MatchedBankTransferScreen(),
       '/order-success' => const OrderSuccessScreen(),
       '/payment-success' => const PaymentResultScreen(success: true),
       '/payment-failed' => const PaymentResultScreen(success: false),
