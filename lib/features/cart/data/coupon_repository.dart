@@ -5,15 +5,20 @@ class CouponRepository {
   const CouponRepository(this.client);
 
   final ApiClient client;
+  static const _requestTimeout = Duration(seconds: 12);
 
   Future<List<Coupon>> getCoupons() async {
-    final response = await client.get('/api/Coupons');
+    final response = await client
+        .get('/api/Coupons')
+        .timeout(_requestTimeout);
     final items = _extractList(response);
     return items.map((item) => Coupon.fromJson(jsonMap(item))).toList();
   }
 
   Future<Coupon> getCoupon(int id) async {
-    final response = await client.get('/api/Coupons/$id');
+    final response = await client
+        .get('/api/Coupons/$id')
+        .timeout(_requestTimeout);
     return Coupon.fromJson(jsonMap(response));
   }
 
