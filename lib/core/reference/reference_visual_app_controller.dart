@@ -1,10 +1,11 @@
+import '../../features/auth/data/auth_repository.dart';
+import '../../features/marketplace/domain/marketplace_models.dart';
 import '../state/app_controller.dart';
 import 'reference_demo_data.dart';
-import '../../features/marketplace/domain/marketplace_models.dart';
 
-/// Deterministic data controller used only by screenshot/reference CI.
-/// Authentication still uses the real test server, but visual collections are
-/// frozen so server seed changes cannot alter the screenshots being compared.
+/// Deterministic controller used only by screenshot/reference CI.
+/// Visual collections and authentication are frozen so backend/network changes
+/// cannot prevent the complete reference-screen suite from being captured.
 class ReferenceVisualAppController extends AppController {
   ReferenceVisualAppController() {
     favorites.addAll(ReferenceDemoData.products.take(2).map((item) => item.id));
@@ -40,6 +41,25 @@ class ReferenceVisualAppController extends AppController {
   @override
   bool isFavorite(String id) =>
       ReferenceDemoData.products.take(2).any((product) => product.id == id);
+
+  @override
+  Future<void> login(String email, String password) async {
+    const visualSession = AuthSession(
+      accessToken: 'reference-visual-access-token',
+      refreshToken: 'reference-visual-refresh-token',
+      userId: 1,
+      email: 'b@b.com',
+      roles: <String>['Customer'],
+    );
+    client.accessToken = visualSession.accessToken;
+    client.refreshToken = visualSession.refreshToken;
+    session = visualSession;
+    errorMessage = null;
+    favorites
+      ..clear()
+      ..addAll(ReferenceDemoData.products.take(2).map((item) => item.id));
+    notifyListeners();
+  }
 
   @override
   Future<void> refreshProducts({String? query, String sort = 'best_selling'}) async {
