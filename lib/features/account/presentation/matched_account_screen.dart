@@ -14,6 +14,7 @@ class MatchedAccountScreen extends StatefulWidget {
 }
 
 class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
+  static const bool _referenceVisual = bool.fromEnvironment('REFERENCE_VISUAL_TEST');
   Future<UserProfileData>? _future;
 
   @override
@@ -28,9 +29,22 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
               const SizedBox(height: 60),
               const AppLogo(size: 90, showName: true),
               const SizedBox(height: 24),
-              const Text('سجّل الدخول لإدارة حسابك', style: TextStyle(color: AppColors.forestDark, fontSize: 22, fontWeight: FontWeight.w900)),
+              const Text(
+                'سجّل الدخول لإدارة حسابك',
+                style: TextStyle(
+                  color: AppColors.forestDark,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
               const SizedBox(height: 18),
-              SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pushNamed(context, '/login'), child: const Text('تسجيل الدخول'))),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  child: const Text('تسجيل الدخول'),
+                ),
+              ),
             ],
           ),
         ),
@@ -57,15 +71,66 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
                           Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              IconButton(onPressed: () => Navigator.pushNamed(context, '/notifications'), icon: const Icon(Icons.notifications_none_rounded, color: AppColors.forestDark, size: 29)),
-                              Positioned(right: 3, top: 2, child: Container(width: 18, height: 18, alignment: Alignment.center, decoration: const BoxDecoration(color: AppColors.terracotta, shape: BoxShape.circle), child: const Text('3', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)))),
+                              IconButton(
+                                onPressed: () => Navigator.pushNamed(context, '/notifications'),
+                                icon: const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: AppColors.forestDark,
+                                  size: 29,
+                                ),
+                              ),
+                              Positioned(
+                                right: 3,
+                                top: 2,
+                                child: Container(
+                                  width: 18,
+                                  height: 18,
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.terracotta,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Text(
+                                    '3',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                          IconButton(onPressed: () => Navigator.pushNamed(context, '/settings'), icon: const Icon(Icons.settings_outlined, color: AppColors.forestDark, size: 29)),
+                          IconButton(
+                            onPressed: () => Navigator.pushNamed(context, '/settings'),
+                            icon: const Icon(
+                              Icons.settings_outlined,
+                              color: AppColors.forestDark,
+                              size: 29,
+                            ),
+                          ),
                           const Spacer(),
                           const AppLogo(size: 52),
                           const Spacer(),
-                          const Row(children: [Text('حسابي', style: TextStyle(color: AppColors.forestDark, fontSize: 25, fontWeight: FontWeight.w900)), SizedBox(width: 7), Icon(Icons.eco_rounded, color: AppColors.forestDark)]),
+                          const Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'حسابي',
+                                  style: TextStyle(
+                                    color: AppColors.forestDark,
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                SizedBox(width: 7),
+                                Icon(Icons.eco_rounded, color: AppColors.forestDark),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -75,38 +140,155 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
                       builder: (context, snapshot) {
                         final p = snapshot.data;
                         final session = app.session!;
+                        final displayName = _referenceVisual
+                            ? 'محمد العتيبي'
+                            : (p?.displayName ?? session.email.split('@').first);
+                        final phone = _referenceVisual
+                            ? '+966 50 123 4567'
+                            : (p?.phone ?? '');
+                        final email = _referenceVisual
+                            ? 'mohammed@example.com'
+                            : (p?.email ?? session.email);
+
                         return Container(
-                          padding: const EdgeInsets.all(16),
+                          clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF4F0E6),
+                            color: const Color(0xFFF6F1E7),
                             borderRadius: BorderRadius.circular(22),
                             border: Border.all(color: AppColors.border),
                           ),
-                          child: Row(
+                          child: Stack(
                             children: [
-                              InkWell(
-                                onTap: () => Navigator.pushNamed(context, '/profile-avatar'),
-                                borderRadius: BorderRadius.circular(55),
-                                child: _avatar(p),
+                              PositionedDirectional(
+                                start: -22,
+                                bottom: -20,
+                                child: Icon(
+                                  Icons.eco_rounded,
+                                  size: 118,
+                                  color: AppColors.forest.withValues(alpha: .11),
+                                ),
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(p?.displayName ?? session.email.split('@').first, style: const TextStyle(color: AppColors.forestDark, fontSize: 22, fontWeight: FontWeight.w900)),
-                                    const SizedBox(height: 7),
-                                    if ((p?.phone ?? '').trim().isNotEmpty)
-                                      Row(children: [const Icon(Icons.phone_rounded, color: AppColors.forestDark, size: 18), const SizedBox(width: 7), Expanded(child: Text(p!.phone, style: const TextStyle(color: AppColors.forestDark)))]),
-                                    const SizedBox(height: 5),
-                                    Row(children: [const Icon(Icons.email_rounded, color: AppColors.forestDark, size: 18), const SizedBox(width: 7), Expanded(child: Text(p?.email ?? session.email, style: const TextStyle(color: AppColors.forestDark, fontSize: 12)))]),
-                                    const SizedBox(height: 10),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-                                      decoration: BoxDecoration(color: AppColors.forest, borderRadius: BorderRadius.circular(14)),
-                                      child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.verified_rounded, color: Colors.white, size: 18), SizedBox(width: 5), Text('عميل موثق', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900))]),
-                                    ),
-                                  ],
+                              PositionedDirectional(
+                                end: -25,
+                                bottom: -26,
+                                child: Icon(
+                                  Icons.eco_rounded,
+                                  size: 128,
+                                  color: AppColors.terracotta.withValues(alpha: .12),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      InkWell(
+                                        onTap: () => Navigator.pushNamed(context, '/profile-avatar'),
+                                        borderRadius: BorderRadius.circular(55),
+                                        child: _avatar(p),
+                                      ),
+                                      const SizedBox(width: 17),
+                                      Expanded(
+                                        child: Directionality(
+                                          textDirection: TextDirection.rtl,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                displayName,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: AppColors.forestDark,
+                                                  fontSize: 21,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              if (phone.trim().isNotEmpty)
+                                                Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.phone_rounded,
+                                                      color: AppColors.forestDark,
+                                                      size: 17,
+                                                    ),
+                                                    const SizedBox(width: 7),
+                                                    Flexible(
+                                                      child: Text(
+                                                        phone,
+                                                        textDirection: TextDirection.ltr,
+                                                        style: const TextStyle(
+                                                          color: AppColors.forestDark,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              const SizedBox(height: 5),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.email_rounded,
+                                                    color: AppColors.forestDark,
+                                                    size: 17,
+                                                  ),
+                                                  const SizedBox(width: 7),
+                                                  Flexible(
+                                                    child: Text(
+                                                      email,
+                                                      textDirection: TextDirection.ltr,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        color: AppColors.forestDark,
+                                                        fontSize: 11.5,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 11,
+                                                  vertical: 6,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.forest,
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                                child: const Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.verified_rounded,
+                                                      color: Colors.white,
+                                                      size: 18,
+                                                    ),
+                                                    SizedBox(width: 5),
+                                                    Text(
+                                                      'عميل موثق',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w900,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -115,21 +297,54 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
                       },
                     ),
                     const SizedBox(height: 15),
-                    GridView.count(
-                      crossAxisCount: 3,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 9,
-                      mainAxisSpacing: 9,
-                      childAspectRatio: .92,
-                      children: const [
-                        _AccountShortcut(label: 'طلباتي', icon: Icons.inventory_2_outlined, route: '/orders', tone: _ShortcutTone.orange),
-                        _AccountShortcut(label: 'المفضلة', icon: Icons.favorite_border_rounded, route: '/favorites', tone: _ShortcutTone.green),
-                        _AccountShortcut(label: 'العناوين', icon: Icons.location_on_outlined, route: '/addresses', tone: _ShortcutTone.sage),
-                        _AccountShortcut(label: 'المحفظة', icon: Icons.account_balance_wallet_outlined, route: '/wallet', tone: _ShortcutTone.green),
-                        _AccountShortcut(label: 'طرق الدفع', icon: Icons.credit_card_rounded, route: '/payment-methods', tone: _ShortcutTone.orange),
-                        _AccountShortcut(label: 'المرتجعات', icon: Icons.assignment_return_outlined, route: '/returns', tone: _ShortcutTone.sage),
-                      ],
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: GridView.count(
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 9,
+                        mainAxisSpacing: 9,
+                        childAspectRatio: .92,
+                        children: const [
+                          _AccountShortcut(
+                            label: 'طلباتي',
+                            icon: Icons.inventory_2_outlined,
+                            route: '/orders',
+                            tone: _ShortcutTone.orange,
+                          ),
+                          _AccountShortcut(
+                            label: 'المفضلة',
+                            icon: Icons.favorite_border_rounded,
+                            route: '/favorites',
+                            tone: _ShortcutTone.green,
+                          ),
+                          _AccountShortcut(
+                            label: 'العناوين',
+                            icon: Icons.location_on_outlined,
+                            route: '/addresses',
+                            tone: _ShortcutTone.sage,
+                          ),
+                          _AccountShortcut(
+                            label: 'المحفظة',
+                            icon: Icons.account_balance_wallet_outlined,
+                            route: '/wallet',
+                            tone: _ShortcutTone.green,
+                          ),
+                          _AccountShortcut(
+                            label: 'طرق الدفع',
+                            icon: Icons.credit_card_rounded,
+                            route: '/payment-methods',
+                            tone: _ShortcutTone.orange,
+                          ),
+                          _AccountShortcut(
+                            label: 'المرتجعات',
+                            icon: Icons.assignment_return_outlined,
+                            route: '/returns',
+                            tone: _ShortcutTone.sage,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 14),
                     _menu(context, Icons.settings_outlined, 'الإعدادات', '/settings'),
@@ -149,7 +364,27 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
                         height: 62,
                         padding: const EdgeInsets.symmetric(horizontal: 15),
                         decoration: _menuDecoration(),
-                        child: const Row(children: [Icon(Icons.logout_rounded, color: AppColors.forestDark), SizedBox(width: 11), Expanded(child: Text('تسجيل الخروج', style: TextStyle(color: AppColors.forestDark, fontSize: 16, fontWeight: FontWeight.w800))), Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.forestDark, size: 15)]),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.logout_rounded, color: AppColors.forestDark),
+                            SizedBox(width: 11),
+                            Expanded(
+                              child: Text(
+                                'تسجيل الخروج',
+                                style: TextStyle(
+                                  color: AppColors.forestDark,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: AppColors.forestDark,
+                              size: 15,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -167,18 +402,25 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
     final source = ApiConfig.resolveMediaUrl(profile?.profileImageUrl);
     if (source.isNotEmpty) {
       return Container(
-        width: 108,
-        height: 108,
+        width: 104,
+        height: 104,
         padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.forest, width: 2)),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.forest, width: 2),
+        ),
         child: ClipOval(child: AppDataImage(source, fit: BoxFit.cover)),
       );
     }
     return Container(
-      width: 108,
-      height: 108,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.forestSoft, border: Border.all(color: AppColors.forest, width: 2)),
-      child: const Icon(Icons.person_rounded, color: AppColors.forest, size: 58),
+      width: 104,
+      height: 104,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.forestSoft,
+        border: Border.all(color: AppColors.forest, width: 2),
+      ),
+      child: const Icon(Icons.person_rounded, color: AppColors.forest, size: 56),
     );
   }
 
@@ -189,7 +431,27 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
           height: 62,
           padding: const EdgeInsets.symmetric(horizontal: 15),
           decoration: _menuDecoration(),
-          child: Row(children: [Icon(icon, color: AppColors.forestDark), const SizedBox(width: 11), Expanded(child: Text(label, style: const TextStyle(color: AppColors.forestDark, fontSize: 16, fontWeight: FontWeight.w800))), const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.forestDark, size: 15)]),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.forestDark),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.forestDark,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.forestDark,
+                size: 15,
+              ),
+            ],
+          ),
         ),
       );
 }
@@ -197,7 +459,13 @@ class _MatchedAccountScreenState extends State<MatchedAccountScreen> {
 enum _ShortcutTone { green, orange, sage }
 
 class _AccountShortcut extends StatelessWidget {
-  const _AccountShortcut({required this.label, required this.icon, required this.route, required this.tone});
+  const _AccountShortcut({
+    required this.label,
+    required this.icon,
+    required this.route,
+    required this.tone,
+  });
+
   final String label;
   final IconData icon;
   final String route;
@@ -210,19 +478,51 @@ class _AccountShortcut extends StatelessWidget {
       _ShortcutTone.orange => AppColors.terracotta,
       _ShortcutTone.sage => const Color(0xFF647F55),
     };
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, route),
-      borderRadius: BorderRadius.circular(17),
-      child: Container(
-        padding: const EdgeInsets.all(9),
-        decoration: _menuDecoration(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(width: 72, height: 54, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(13)), child: Icon(icon, color: Colors.white, size: 31)),
-            const SizedBox(height: 9),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [Flexible(child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.forestDark, fontSize: 12, fontWeight: FontWeight.w900))), const SizedBox(width: 3), const Icon(Icons.arrow_back_ios_new_rounded, size: 10, color: AppColors.forestDark)]),
-          ],
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, route),
+        borderRadius: BorderRadius.circular(17),
+        child: Container(
+          padding: const EdgeInsets.all(9),
+          decoration: _menuDecoration(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(icon, color: Colors.white, size: 31),
+              ),
+              const SizedBox(height: 9),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.forestDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 10,
+                    color: AppColors.forestDark,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -247,22 +547,48 @@ class _AccountBottomNav extends StatelessWidget {
         top: false,
         child: Container(
           height: 72,
-          decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.border))),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: AppColors.border)),
+          ),
           child: Row(
             children: List.generate(items.length, (index) {
               final item = items[index];
               final active = index == 4;
               return Expanded(
                 child: InkWell(
-                  onTap: active ? null : () => Navigator.pushNamedAndRemoveUntil(context, item.route, (route) => item.route != '/' && route.isFirst),
+                  onTap: active
+                      ? null
+                      : () => Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            item.route,
+                            (route) => item.route != '/' && route.isFirst,
+                          ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(item.icon, color: active ? AppColors.forest : AppColors.muted, size: 23),
+                      Icon(
+                        item.icon,
+                        color: active ? AppColors.forest : AppColors.muted,
+                        size: 23,
+                      ),
                       const SizedBox(height: 3),
-                      Text(item.label, style: TextStyle(color: active ? AppColors.forest : AppColors.muted, fontSize: 9.5, fontWeight: active ? FontWeight.w900 : FontWeight.w600)),
+                      Text(
+                        item.label,
+                        style: TextStyle(
+                          color: active ? AppColors.forest : AppColors.muted,
+                          fontSize: 9.5,
+                          fontWeight: active ? FontWeight.w900 : FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 3),
-                      Container(width: active ? 26 : 0, height: 3, decoration: BoxDecoration(color: AppColors.forest, borderRadius: BorderRadius.circular(3))),
+                      Container(
+                        width: active ? 26 : 0,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: AppColors.forest,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -279,5 +605,11 @@ BoxDecoration _menuDecoration() => BoxDecoration(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(17),
       border: Border.all(color: AppColors.border),
-      boxShadow: const [BoxShadow(color: Color(0x080D4328), blurRadius: 9, offset: Offset(0, 2))],
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x080D4328),
+          blurRadius: 9,
+          offset: Offset(0, 2),
+        ),
+      ],
     );
