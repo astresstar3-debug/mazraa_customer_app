@@ -16,7 +16,7 @@ import '../../features/auth/presentation/connected_recovery_screens.dart';
 import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
-import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
+import '../../features/cart/presentation/fixed_checkout_screen.dart';
 import '../../features/cart/presentation/matched_cart_screens.dart';
 import '../../features/cart/presentation/matched_delivery_payment_screens.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
@@ -73,7 +73,7 @@ abstract final class AppRouter {
       '/guarantee-details' => const ReferenceGuaranteeScreen(),
       '/cart' => const MatchedCartScreen(),
       '/cart-empty' => const MatchedCartScreen(forceEmpty: true),
-      '/checkout' => const MatchedCheckoutScreen(),
+      '/checkout' => const FixedCheckoutScreen(),
       '/delivery-slot' => const MatchedDeliverySlotScreen(),
       '/delivery-preferences' => const MatchedDeliveryPreferencesScreen(),
       '/payment-methods' => const MatchedPaymentMethodsScreen(),
