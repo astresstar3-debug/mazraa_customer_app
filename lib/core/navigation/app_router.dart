@@ -9,7 +9,6 @@ import '../../features/account/presentation/connected_server_account_extras.dart
 import '../../features/account/presentation/connected_support_chat_screen.dart';
 import '../../features/auctions/presentation/auction_screens.dart';
 import '../../features/auctions/presentation/connected_auction_screens.dart';
-import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
@@ -54,15 +53,9 @@ abstract final class AppRouter {
       '/auction-details' => const _FirstAuctionScreen(),
       '/auction-gallery' => const _FirstAuctionScreen(index: 2),
       '/auction-bid' => const _BidRoute(),
-      '/auction-success' => const _ReferenceAuctionResultRoute(
-          kind: AuctionResultKind.success,
-        ),
-      '/auction-won' => const _ReferenceAuctionResultRoute(
-          kind: AuctionResultKind.won,
-        ),
-      '/auction-ended' => const _ReferenceAuctionResultRoute(
-          kind: AuctionResultKind.ended,
-        ),
+      '/auction-success' => const _ReferenceAuctionResultRoute(kind: AuctionResultKind.success),
+      '/auction-won' => const _ReferenceAuctionResultRoute(kind: AuctionResultKind.won),
+      '/auction-ended' => const _ReferenceAuctionResultRoute(kind: AuctionResultKind.ended),
       '/my-auctions' => const MyAuctionsScreen(),
       '/bid-history' => const MyAuctionsScreen(history: true),
       '/auction-reminder' => const _ReferenceAuctionReminderRoute(),
