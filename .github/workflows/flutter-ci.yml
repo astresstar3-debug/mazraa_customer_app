@@ -47,9 +47,7 @@ jobs:
             .dart_tool
             build
             android/.gradle
-          key: mazraa-flutter-build-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'android/settings.gradle.kts', 'android/app/build.gradle.kts', 'android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            mazraa-flutter-build-${{ runner.os }}-
+          key: mazraa-flutter-build-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'lib/**/*.dart', 'integration_test/**/*.dart', 'test_driver/**/*.dart', 'android/settings.gradle.kts', 'android/app/build.gradle.kts', 'android/gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Resolve dependencies
         run: flutter pub get
