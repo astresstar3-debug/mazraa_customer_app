@@ -54,132 +54,159 @@ class _ConnectedLoginScreenState extends State<ConnectedLoginScreen> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppColors.ivory,
         body: SafeArea(
-          child: AppPage(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 22, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 4),
-                const Center(child: AppLogo(size: 105, showName: true)),
-                const SizedBox(height: 24),
-                const Text(
-                  'أهلاً بك في مزرعتي',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.forestDark,
-                    fontSize: 29,
-                    height: 1.25,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                const Text(
-                  'تسوق وشارك في المزادات بثقة',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.muted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    decoration: _authDecoration(
-                      hint: 'رقم الجوال أو البريد الإلكتروني',
-                      icon: Icons.email_outlined,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 13),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: passwordController,
-                    obscureText: obscure,
-                    onSubmitted: (_) {
-                      if (!loading) _login();
-                    },
-                    decoration: _authDecoration(
-                      hint: 'كلمة المرور',
-                      icon: Icons.lock_outline_rounded,
-                      suffix: IconButton(
-                        onPressed: () => setState(() => obscure = !obscure),
-                        icon: Icon(
-                          obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: const Color(0xFF78836F),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxHeight < 760;
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      const PositionedDirectional(
+                        bottom: 0,
+                        start: 0,
+                        end: 0,
+                        child: _AuthLandscape(height: 202),
+                      ),
+                      Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(22, compact ? 10 : 20, 22, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(child: AppLogo(size: compact ? 114 : 132, showName: true)),
+                            SizedBox(height: compact ? 16 : 28),
+                            const Text(
+                              'أهلاً بك في مزرعتي',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.forestDark,
+                                fontSize: 31,
+                                height: 1.22,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 9),
+                            const Text(
+                              'تسوق وشارك في المزادات بثقة',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF687563),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: compact ? 24 : 34),
+                            _AuthFieldShell(
+                              child: TextField(
+                                controller: emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                decoration: _authDecoration(
+                                  hint: 'رقم الجوال أو البريد الإلكتروني',
+                                  icon: Icons.email_outlined,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _AuthFieldShell(
+                              child: TextField(
+                                controller: passwordController,
+                                obscureText: obscure,
+                                onSubmitted: (_) {
+                                  if (!loading) _login();
+                                },
+                                decoration: _authDecoration(
+                                  hint: 'كلمة المرور',
+                                  icon: Icons.lock_outline_rounded,
+                                  suffix: IconButton(
+                                    onPressed: () => setState(() => obscure = !obscure),
+                                    icon: Icon(
+                                      obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      color: const Color(0xFF78836F),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: TextButton(
+                                onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(4, 11, 4, 11),
+                                ),
+                                child: const Text(
+                                  'نسيت كلمة المرور؟',
+                                  style: TextStyle(
+                                    color: AppColors.forestDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            _AuthGradientButton(
+                              label: 'تسجيل الدخول',
+                              loading: loading,
+                              onPressed: _login,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Row(
+                                children: [
+                                  Expanded(child: Divider(color: Color(0xFFB8BDAA), thickness: .8)),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 14),
+                                    child: Text('أو', style: TextStyle(color: Color(0xFF7A856F), fontSize: 14)),
+                                  ),
+                                  Expanded(child: Divider(color: Color(0xFFB8BDAA), thickness: .8)),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 62,
+                              child: OutlinedButton.icon(
+                                onPressed: () => Navigator.pushNamed(context, '/register'),
+                                icon: const Icon(Icons.person_add_alt_1_rounded, size: 25),
+                                label: const Text(
+                                  'إنشاء حساب جديد',
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.forestDark,
+                                  side: const BorderSide(color: AppColors.forest, width: 1.35),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.favorite_rounded, color: AppColors.forest, size: 18),
+                                SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'سلة التسوق والمفضلة محفوظة لحسابك.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Color(0xFF66745E), fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: compact ? 145 : 190),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                    child: const Text(
-                      'نسيت كلمة المرور؟',
-                      style: TextStyle(
-                        color: AppColors.forestDark,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w900,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-                _AuthGradientButton(
-                  label: 'تسجيل الدخول',
-                  loading: loading,
-                  onPressed: _login,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 17),
-                  child: Row(
-                    children: [
-                      Expanded(child: Divider(color: Color(0xFFBFC3AD))),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 13),
-                        child: Text('أو', style: TextStyle(color: AppColors.muted)),
-                      ),
-                      Expanded(child: Divider(color: Color(0xFFBFC3AD))),
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 56,
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
-                    icon: const Icon(Icons.person_add_alt_1_rounded),
-                    label: const Text(
-                      'إنشاء حساب جديد',
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.forestDark,
-                      side: const BorderSide(color: AppColors.forest, width: 1.2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 19),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.favorite_rounded, color: AppColors.forest, size: 16),
-                    SizedBox(width: 7),
-                    Text(
-                      'سلة التسوق والمفضلة محفوظة لحسابك.',
-                      style: TextStyle(color: AppColors.muted, fontSize: 10.5),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const _AuthLandscape(height: 178),
-              ],
-            ),
+              );
+            },
           ),
         ),
       );
@@ -200,6 +227,8 @@ class _ConnectedRegisterScreenState extends State<ConnectedRegisterScreen> {
   final confirmController = TextEditingController();
   bool accepted = true;
   bool loading = false;
+  bool obscurePassword = true;
+  bool obscureConfirm = true;
 
   @override
   void dispose() {
@@ -247,164 +276,198 @@ class _ConnectedRegisterScreenState extends State<ConnectedRegisterScreen> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppColors.ivory,
         body: SafeArea(
-          child: AppPage(
-            padding: const EdgeInsetsDirectional.fromSTEB(18, 8, 18, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: 62,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const AppLogo(size: 58),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: IconButton(
-                          onPressed: () => Navigator.maybePop(context),
-                          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.forestDark, size: 26),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
                   children: [
-                    Text(
-                      'إنشاء حساب جديد',
-                      style: TextStyle(
-                        color: AppColors.forestDark,
-                        fontSize: 27,
-                        height: 1.2,
-                        fontWeight: FontWeight.w900,
-                      ),
+                    const PositionedDirectional(
+                      bottom: 0,
+                      start: 0,
+                      end: 0,
+                      child: _AuthLandscape(height: 190),
                     ),
-                    SizedBox(width: 9),
-                    Icon(Icons.eco_rounded, color: AppColors.forest, size: 23),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'أنشئ حسابك وابدأ التسوق والمزايدة.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.muted, fontSize: 12.5),
-                ),
-                const SizedBox(height: 23),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: nameController,
-                    decoration: _authDecoration(hint: 'الاسم الكامل', icon: Icons.person_outline_rounded),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: _authDecoration(hint: 'رقم الجوال', icon: Icons.phone_outlined),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: _authDecoration(hint: 'البريد الإلكتروني', icon: Icons.email_outlined),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: _authDecoration(
-                      hint: 'كلمة المرور',
-                      icon: Icons.lock_outline_rounded,
-                      suffix: const Icon(Icons.visibility_outlined, color: Color(0xFF78836F)),
+                    const PositionedDirectional(
+                      top: 100,
+                      end: -25,
+                      child: _CornerLeaves(),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                _AuthFieldShell(
-                  child: TextField(
-                    controller: confirmController,
-                    obscureText: true,
-                    decoration: _authDecoration(
-                      hint: 'تأكيد كلمة المرور',
-                      icon: Icons.lock_outline_rounded,
-                      suffix: const Icon(Icons.visibility_outlined, color: Color(0xFF78836F)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: accepted,
-                      onChanged: (value) => setState(() => accepted = value ?? false),
-                      activeColor: AppColors.forest,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, '/legal'),
-                        child: const Text(
-                          'أوافق على الشروط وسياسة الخصوصية',
-                          style: TextStyle(
-                            color: AppColors.forestDark,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                _AuthGradientButton(
-                  label: 'إنشاء الحساب',
-                  loading: loading,
-                  onPressed: _register,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  child: Row(
-                    children: [
-                      Expanded(child: Divider(color: Color(0xFFD8D2C0))),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Icon(Icons.eco_rounded, color: AppColors.forest, size: 20),
-                      ),
-                      Expanded(child: Divider(color: Color(0xFFD8D2C0))),
-                    ],
-                  ),
-                ),
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text.rich(
-                      TextSpan(
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(22, 6, 22, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          TextSpan(text: 'لدي حساب بالفعل  ', style: TextStyle(color: AppColors.muted)),
-                          TextSpan(
-                            text: 'تسجيل الدخول',
-                            style: TextStyle(
-                              color: AppColors.forestDark,
-                              fontWeight: FontWeight.w900,
-                              decoration: TextDecoration.underline,
+                          SizedBox(
+                            height: 86,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                const AppLogo(size: 80),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: IconButton(
+                                    onPressed: () => Navigator.maybePop(context),
+                                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.forestDark, size: 29),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'إنشاء حساب جديد',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.forestDark,
+                              fontSize: 30,
+                              height: 1.2,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'أنشئ حسابك وابدأ التسوق والمزايدة.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Color(0xFF687563), fontSize: 15, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 34),
+                          _AuthFieldShell(
+                            child: TextField(
+                              controller: nameController,
+                              decoration: _authDecoration(hint: 'الاسم الكامل', icon: Icons.person_outline_rounded),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _AuthFieldShell(
+                            child: TextField(
+                              controller: phoneController,
+                              keyboardType: TextInputType.phone,
+                              decoration: _authDecoration(hint: 'رقم الجوال', icon: Icons.phone_outlined),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _AuthFieldShell(
+                            child: TextField(
+                              controller: emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: _authDecoration(hint: 'البريد الإلكتروني', icon: Icons.email_outlined),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _AuthFieldShell(
+                            child: TextField(
+                              controller: passwordController,
+                              obscureText: obscurePassword,
+                              decoration: _authDecoration(
+                                hint: 'كلمة المرور',
+                                icon: Icons.lock_outline_rounded,
+                                suffix: IconButton(
+                                  onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                                  icon: Icon(
+                                    obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                    color: const Color(0xFF64735C),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          _AuthFieldShell(
+                            child: TextField(
+                              controller: confirmController,
+                              obscureText: obscureConfirm,
+                              decoration: _authDecoration(
+                                hint: 'تأكيد كلمة المرور',
+                                icon: Icons.lock_outline_rounded,
+                                suffix: IconButton(
+                                  onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
+                                  icon: Icon(
+                                    obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                    color: const Color(0xFF64735C),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 13),
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: accepted,
+                                onChanged: (value) => setState(() => accepted = value ?? false),
+                                activeColor: AppColors.forest,
+                                side: const BorderSide(color: AppColors.forestDark, width: 1.4),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pushNamed(context, '/legal'),
+                                  child: const Text(
+                                    'أوافق على الشروط وسياسة الخصوصية',
+                                    style: TextStyle(
+                                      color: AppColors.forestDark,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _AuthGradientButton(
+                            label: 'إنشاء الحساب',
+                            loading: loading,
+                            onPressed: _register,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 18),
+                            child: Row(
+                              children: [
+                                Expanded(child: Divider(color: Color(0xFFD1CDBD))),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 14),
+                                  child: Icon(Icons.eco_rounded, color: AppColors.forest, size: 21),
+                                ),
+                                Expanded(child: Divider(color: Color(0xFFD1CDBD))),
+                              ],
+                            ),
+                          ),
+                          Center(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'لدي حساب بالفعل  ',
+                                      style: TextStyle(color: Color(0xFF7E8776), fontSize: 13),
+                                    ),
+                                    TextSpan(
+                                      text: 'تسجيل الدخول',
+                                      style: TextStyle(
+                                        color: AppColors.forestDark,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w900,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 150),
                         ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                const _AuthLandscape(height: 132),
-              ],
+              ),
             ),
           ),
         ),
@@ -417,13 +480,13 @@ class _AuthFieldShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 58,
+        height: 64,
         decoration: BoxDecoration(
           color: const Color(0xFFFFFEFA),
-          borderRadius: BorderRadius.circular(19),
-          border: Border.all(color: const Color(0xFFE4DECF)),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFE1DACA), width: 1.05),
           boxShadow: const [
-            BoxShadow(color: Color(0x0B000000), blurRadius: 12, offset: Offset(0, 4)),
+            BoxShadow(color: Color(0x0E000000), blurRadius: 14, offset: Offset(0, 5)),
           ],
         ),
         child: child,
@@ -436,8 +499,8 @@ InputDecoration _authDecoration({
   Widget? suffix,
 }) => InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF8A8A79), fontSize: 12.5),
-      prefixIcon: Icon(icon, color: AppColors.forestDark, size: 22),
+      hintStyle: const TextStyle(color: Color(0xFF8C8D7B), fontSize: 14, fontWeight: FontWeight.w500),
+      prefixIcon: Icon(icon, color: AppColors.forestDark, size: 24),
       suffixIcon: suffix,
       border: InputBorder.none,
       enabledBorder: InputBorder.none,
@@ -445,7 +508,7 @@ InputDecoration _authDecoration({
       errorBorder: InputBorder.none,
       focusedErrorBorder: InputBorder.none,
       filled: false,
-      contentPadding: const EdgeInsetsDirectional.fromSTEB(14, 18, 14, 15),
+      contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 20, 16, 17),
     );
 
 class _AuthGradientButton extends StatelessWidget {
@@ -461,16 +524,16 @@ class _AuthGradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        height: 58,
+        height: 64,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.centerRight,
             end: Alignment.centerLeft,
-            colors: [Color(0xFF0B4D2B), Color(0xFF1D6B3E)],
+            colors: [Color(0xFF0A4728), Color(0xFF226A3D)],
           ),
-          borderRadius: BorderRadius.circular(21),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: const [
-            BoxShadow(color: Color(0x140D4328), blurRadius: 16, offset: Offset(0, 6)),
+            BoxShadow(color: Color(0x160D4328), blurRadius: 17, offset: Offset(0, 7)),
           ],
         ),
         child: FilledButton(
@@ -479,35 +542,53 @@ class _AuthGradientButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             disabledBackgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(21)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
           ),
           child: loading
               ? const SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 22,
+                  height: 22,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                 )
               : Stack(
                   alignment: Alignment.center,
                   children: [
                     PositionedDirectional(
-                      start: 3,
-                      child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .20), size: 26),
+                      start: 8,
+                      child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .17), size: 31),
                     ),
                     PositionedDirectional(
-                      end: 3,
-                      child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .16), size: 26),
+                      end: 8,
+                      child: Icon(Icons.eco_rounded, color: Colors.white.withValues(alpha: .14), size: 29),
                     ),
                     Text(
                       label,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ],
                 ),
+        ),
+      );
+}
+
+class _CornerLeaves extends StatelessWidget {
+  const _CornerLeaves();
+
+  @override
+  Widget build(BuildContext context) => Transform.rotate(
+        angle: -.4,
+        child: Column(
+          children: [
+            Icon(Icons.eco_rounded, size: 74, color: const Color(0xFF719151).withValues(alpha: .58)),
+            Transform.translate(
+              offset: const Offset(-28, -20),
+              child: Icon(Icons.eco_rounded, size: 40, color: const Color(0xFF91AA6C).withValues(alpha: .56)),
+            ),
+          ],
         ),
       );
 }
@@ -524,25 +605,37 @@ class _AuthLandscape extends StatelessWidget {
           children: [
             Positioned.fill(child: CustomPaint(painter: _LandscapePainter())),
             PositionedDirectional(
-              bottom: -5,
-              start: -15,
+              bottom: -8,
+              start: -24,
               child: Transform.rotate(
-                angle: -.28,
-                child: Icon(Icons.eco_rounded, size: height * .78, color: const Color(0xFF6F8D58).withValues(alpha: .55)),
+                angle: -.24,
+                child: Icon(
+                  Icons.eco_rounded,
+                  size: height * .77,
+                  color: const Color(0xFF5F7D49).withValues(alpha: .68),
+                ),
               ),
             ),
             PositionedDirectional(
-              bottom: 3,
-              end: 6,
-              child: Transform.rotate(
-                angle: .35,
-                child: Icon(Icons.eco_rounded, size: height * .46, color: const Color(0xFF91A66D).withValues(alpha: .48)),
-              ),
-            ),
-            PositionedDirectional(
-              bottom: height * .16,
+              bottom: 11,
               start: height * .20,
-              child: Icon(Icons.circle, size: 13, color: AppColors.terracotta.withValues(alpha: .58)),
+              child: Column(
+                children: [
+                  Icon(Icons.circle, size: 17, color: AppColors.terracotta.withValues(alpha: .78)),
+                  const SizedBox(height: 8),
+                  Icon(Icons.circle, size: 12, color: AppColors.terracotta.withValues(alpha: .62)),
+                ],
+              ),
+            ),
+            PositionedDirectional(
+              bottom: 16,
+              end: 28,
+              child: Icon(Icons.home_rounded, size: height * .25, color: const Color(0xFFC86C37).withValues(alpha: .82)),
+            ),
+            PositionedDirectional(
+              bottom: 12,
+              end: 2,
+              child: Icon(Icons.park_rounded, size: height * .32, color: const Color(0xFF718B55).withValues(alpha: .70)),
             ),
           ],
         ),
@@ -554,34 +647,41 @@ class _LandscapePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final pale = Paint()..color = const Color(0xFFE9E1B4).withValues(alpha: .64);
-    final green = Paint()..color = const Color(0xFFB8C395).withValues(alpha: .58);
-    final cream = Paint()..color = const Color(0xFFF2E8C9).withValues(alpha: .90);
+    final pale = Paint()..color = const Color(0xFFE9E1B4).withValues(alpha: .75);
+    final green = Paint()..color = const Color(0xFF9FAF7A).withValues(alpha: .66);
+    final cream = Paint()..color = const Color(0xFFF2E6C6).withValues(alpha: .94);
+    final white = Paint()..color = AppColors.ivory.withValues(alpha: .96);
 
     final p1 = Path()
-      ..moveTo(0, size.height * .70)
-      ..quadraticBezierTo(size.width * .24, size.height * .48, size.width * .51, size.height * .69)
-      ..quadraticBezierTo(size.width * .78, size.height * .90, size.width, size.height * .62)
+      ..moveTo(0, size.height * .65)
+      ..quadraticBezierTo(size.width * .22, size.height * .43, size.width * .48, size.height * .67)
+      ..quadraticBezierTo(size.width * .75, size.height * .91, size.width, size.height * .56)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
     canvas.drawPath(p1, cream);
 
     final p2 = Path()
-      ..moveTo(size.width * .37, size.height)
-      ..quadraticBezierTo(size.width * .65, size.height * .62, size.width, size.height * .70)
+      ..moveTo(size.width * .45, size.height)
+      ..quadraticBezierTo(size.width * .69, size.height * .58, size.width, size.height * .68)
       ..lineTo(size.width, size.height)
       ..close();
     canvas.drawPath(p2, green);
 
     final p3 = Path()
-      ..moveTo(0, size.height * .87)
-      ..quadraticBezierTo(size.width * .28, size.height * .70, size.width * .58, size.height * .86)
-      ..quadraticBezierTo(size.width * .80, size.height * .96, size.width, size.height * .80)
+      ..moveTo(0, size.height * .84)
+      ..quadraticBezierTo(size.width * .30, size.height * .67, size.width * .58, size.height * .84)
+      ..quadraticBezierTo(size.width * .80, size.height * .94, size.width, size.height * .78)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
       ..close();
     canvas.drawPath(p3, pale);
+
+    final lane = Path()
+      ..moveTo(size.width * .58, size.height)
+      ..quadraticBezierTo(size.width * .70, size.height * .80, size.width * .89, size.height * .72)
+      ..quadraticBezierTo(size.width * .78, size.height * .92, size.width * .71, size.height);
+    canvas.drawPath(lane, white);
   }
 
   @override
