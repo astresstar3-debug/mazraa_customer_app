@@ -10,6 +10,7 @@ import '../../features/account/presentation/connected_server_account_extras.dart
 import '../../features/account/presentation/matched_account_extras.dart';
 import '../../features/account/presentation/matched_account_screen.dart';
 import '../../features/account/presentation/matched_order_return_screens.dart';
+import '../../features/account/presentation/pixel_account_state_screens.dart';
 import '../../features/account/presentation/pixel_orders_screen.dart';
 import '../../features/auctions/presentation/pixel_auction_screens.dart';
 import '../../features/auctions/presentation/pixel_auction_state_screens.dart';
@@ -103,21 +104,21 @@ abstract final class AppRouter {
       '/notifications' => const ConnectedNotificationsScreen(),
       '/notification-preferences' => const MatchedNotificationPreferencesScreen(),
       '/addresses' => const ConnectedAddressesScreen(),
-      '/addresses-empty' => const MatchedEmptyAddressesScreen(),
+      '/addresses-empty' => const PixelEmptyAddressesScreen(),
       '/add-address' => const MatchedAddAddressScreen(),
       '/wallet' => const ConnectedResponsiveWalletScreen(),
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
-      '/wallet-topup-success' => const WalletTopUpSuccessScreen(amount: 1000),
+      '/wallet-topup-success' => const PixelWalletTopUpSuccessScreen(),
       '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
       '/orders' => const PixelAwareOrdersScreen(),
       '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
       '/track-order' => const _FirstOrderActionRoute(action: _OrderAction.track),
       '/cancel-order' => const _FirstOrderActionRoute(action: _OrderAction.cancel),
-      '/order-cancelled' => const MatchedOrderCancelledScreen(),
+      '/order-cancelled' => const PixelOrderCancelledScreen(),
       '/rate-order' => const _FirstOrderActionRoute(action: _OrderAction.rate),
       '/returns' => const MatchedReturnsScreen(),
       '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
-      '/return-success' => const MatchedReturnSuccessScreen(),
+      '/return-success' => const PixelReturnSuccessScreen(),
       '/refund-status' => const MatchedRefundStatusScreen(),
       '/invoice' => const _FirstInvoiceRoute(),
       '/support' => const ConnectedSupportScreen(),
@@ -125,7 +126,7 @@ abstract final class AppRouter {
       '/support-chat' => const MatchedSupportChatScreen(),
       '/legal' => const MatchedLegalScreen(),
       '/delete-account' => const ConnectedDeleteAccountScreen(),
-      '/offline' => const MatchedOfflineScreen(),
+      '/offline' => const PixelOfflineScreen(),
       _ => const MainShell(),
     };
     return MaterialPageRoute(settings: settings, builder: (_) => page);
