@@ -52,6 +52,15 @@ jobs:
           restore-keys: |
             mazraa-flutter-build-${{ runner.os }}-
 
+      - name: Cache Android emulator image and AVD
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd
+            ~/.android/adb*
+            ${{ env.ANDROID_HOME }}/system-images/android-32/google_apis/x86_64
+          key: mazraa-avd-${{ runner.os }}-api32-google-x86_64-v2
+
       - name: Resolve dependencies
         run: flutter pub get
 
@@ -71,11 +80,12 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          force-avd-creation: false
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
           script: |
             flutter devices
-            flutter drive --no-dds --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554
+            flutter drive --no-dds --dart-define=REFERENCE_VISUAL_TEST=true --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554
 
       - name: Upload debug APK produced by integration build
         if: always()
