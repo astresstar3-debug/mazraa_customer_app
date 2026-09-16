@@ -336,7 +336,7 @@ class _MatchedPaymentMethodsScreenState extends State<MatchedPaymentMethodsScree
                 children: [
                   Icon(Icons.eco_outlined, color: AppColors.forest),
                   SizedBox(width: 8),
-                  Icon(Icons.shield_lock_outlined, color: AppColors.forestDark),
+                  Icon(Icons.verified_user_outlined, color: AppColors.forestDark),
                   SizedBox(width: 8),
                   Text('بياناتك مشفرة وآمنة', style: TextStyle(color: AppColors.forestDark, fontWeight: FontWeight.w800)),
                   SizedBox(width: 8),
@@ -485,7 +485,7 @@ class _MatchedCardFormScreenState extends State<MatchedCardFormScreen> {
               Container(
                 padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(color: AppColors.forestSoft, borderRadius: BorderRadius.circular(14)),
-                child: const Row(children: [Icon(Icons.shield_lock_outlined, color: AppColors.forestDark), SizedBox(width: 8), Text('بياناتك مشفرة وآمنة', style: TextStyle(color: AppColors.forestDark, fontWeight: FontWeight.w800))]),
+                child: const Row(children: [Icon(Icons.verified_user_outlined, color: AppColors.forestDark), SizedBox(width: 8), Text('بياناتك مشفرة وآمنة', style: TextStyle(color: AppColors.forestDark, fontWeight: FontWeight.w800))]),
               ),
               const SizedBox(height: 20),
               SizedBox(height: 56, child: FilledButton(onPressed: () => Navigator.maybePop(context), child: Text(widget.editing ? 'حفظ التعديلات' : 'حفظ البطاقة', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)))),
