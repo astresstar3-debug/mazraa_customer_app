@@ -76,29 +76,52 @@ jobs:
             flutter devices
             flutter drive --no-dds --dart-define=REFERENCE_VISUAL_TEST=true --driver=test_driver/integration_test.dart --target=integration_test/app_screenshots_test.dart -d emulator-5554
 
+      - name: Package screen screenshots
+        if: always()
+        run: |
+          if [ -d screenshots ] && find screenshots -type f -name '*.png' -print -quit | grep -q .; then
+            mkdir -p build/artifacts
+            zip -0 -r "build/artifacts/mazraa-screen-screenshots-${GITHUB_RUN_ID}.zip" screenshots
+          else
+            echo "No screenshots were produced; skipping screenshot package."
+          fi
+
       - name: Upload debug APK produced by integration build
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mazraa-debug-apk
+          name: mazraa-debug-apk-${{ github.run_id }}
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Upload screen screenshots
+      - name: Upload screen screenshots package
+        id: screenshot_upload
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: mazraa-screen-screenshots
-          path: screenshots/**/*.png
+          name: mazraa-screen-screenshots-${{ github.run_id }}
+          path: build/artifacts/mazraa-screen-screenshots-${{ github.run_id }}.zip
           if-no-files-found: warn
           retention-days: 7
+          compression-level: 0
+
+      - name: Retry screenshot artifact upload
+        if: always() && steps.screenshot_upload.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-screen-screenshots-${{ github.run_id }}-retry
+          path: build/artifacts/mazraa-screen-screenshots-${{ github.run_id }}.zip
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
       - name: Upload all reference designs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mazraa-design-references
+          name: mazraa-design-references-${{ github.run_id }}
           path: AppImages/**/*.png
           if-no-files-found: error
           retention-days: 7
@@ -107,7 +130,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mazraa-integration-output
+          name: mazraa-integration-output-${{ github.run_id }}
           path: build/integration_response_data.json
           if-no-files-found: ignore
           retention-days: 7
