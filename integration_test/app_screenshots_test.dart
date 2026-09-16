@@ -14,17 +14,17 @@ void main() {
       find.byType(LinearProgressIndicator).evaluate().isNotEmpty ||
       find.byType(RefreshProgressIndicator).evaluate().isNotEmpty;
 
-  bool appIsLoading(WidgetTester tester) {
+  AppController appController(WidgetTester tester) {
     final materialApp = find.byType(MaterialApp);
-    if (materialApp.evaluate().isEmpty) return true;
+    expect(materialApp, findsOneWidget);
     final context = tester.element(materialApp.first);
-    return AppScope.of(context).isLoading;
+    return AppScope.of(context);
   }
 
   Future<void> waitUntilScreenReady(
     WidgetTester tester, {
     required String screenName,
-    Duration timeout = const Duration(seconds: 30),
+    Duration timeout = const Duration(seconds: 35),
   }) async {
     await tester.pump();
 
@@ -32,15 +32,21 @@ void main() {
     var stableChecks = 0;
 
     while (DateTime.now().isBefore(deadline)) {
-      final loading = appIsLoading(tester) || hasLoadingIndicators();
+      final controller = appController(tester);
+      final loading = controller.isLoading ||
+          controller.client.hasPendingRequests ||
+          hasLoadingIndicators();
 
       if (!loading) {
         stableChecks++;
         if (stableChecks >= 3) {
-          // Give network images and the final layout a little extra time to settle.
+          // Give network images and the final layout extra time to settle.
           await tester.pump(const Duration(seconds: 2));
 
-          if (!appIsLoading(tester) && !hasLoadingIndicators()) {
+          final settledController = appController(tester);
+          if (!settledController.isLoading &&
+              !settledController.client.hasPendingRequests &&
+              !hasLoadingIndicators()) {
             return;
           }
           stableChecks = 0;
@@ -52,9 +58,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
     }
 
+    final controller = appController(tester);
     throw TestFailure(
       'Timed out waiting for $screenName to finish loading. '
-      'Screenshot was intentionally not captured while loading was still visible.',
+      'appLoading=${controller.isLoading}, '
+      'pendingApiRequests=${controller.client.activeRequestCount}, '
+      'visibleLoadingIndicators=${hasLoadingIndicators()}. '
+      'Screenshot was intentionally not captured while data was incomplete.',
     );
   }
 
