@@ -19,8 +19,8 @@ class StoredSession {
 class SessionStorage {
   const SessionStorage();
 
-  static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  static final _storage = FlutterSecureStorage(
+    aOptions: const AndroidOptions(encryptedSharedPreferences: true),
   );
 
   static const _accessKey = 'auth.access_token';
