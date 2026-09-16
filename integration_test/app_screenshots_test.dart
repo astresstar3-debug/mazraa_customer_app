@@ -13,6 +13,17 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   }
 
+  Future<void> waitForLoadingToFinish(
+    WidgetTester tester, {
+    Duration timeout = const Duration(seconds: 14),
+  }) async {
+    final end = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(end) &&
+        find.byType(CircularProgressIndicator).evaluate().isNotEmpty) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+  }
+
   Future<void> capture(WidgetTester tester, String name) async {
     await settleNetworkScreen(tester);
     final exception = tester.takeException();
@@ -49,13 +60,26 @@ void main() {
       '/account': '08-account',
       '/login': '09-login',
       '/register': '10-register',
-      '/coupon': '11-coupons',
-      '/legal': '12-legal',
     };
 
     for (final entry in routes.entries) {
       await openRoute(tester, entry.key);
       await capture(tester, entry.value);
     }
+
+    await openRoute(tester, '/coupon');
+    await waitForLoadingToFinish(tester);
+    await capture(tester, '11-coupons');
+
+    final couponDetailArrow = find.byIcon(Icons.arrow_back_rounded);
+    if (couponDetailArrow.evaluate().isNotEmpty) {
+      await tester.tap(couponDetailArrow.last);
+      await tester.pump();
+      await waitForLoadingToFinish(tester);
+      await capture(tester, '11b-coupon-detail');
+    }
+
+    await openRoute(tester, '/legal');
+    await capture(tester, '12-legal');
   });
 }
