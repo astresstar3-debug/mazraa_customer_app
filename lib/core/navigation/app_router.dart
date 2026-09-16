@@ -12,6 +12,7 @@ import '../../features/account/presentation/matched_account_screen.dart';
 import '../../features/account/presentation/matched_order_return_screens.dart';
 import '../../features/account/presentation/pixel_orders_screen.dart';
 import '../../features/auctions/presentation/pixel_auction_screens.dart';
+import '../../features/auctions/presentation/pixel_auction_state_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
@@ -72,13 +73,13 @@ abstract final class AppRouter {
       '/auction-gallery' => const PixelAuctionDetailsScreen(galleryMode: true),
       '/auction-bid' => const PixelBidScreen(),
       '/auction-bid-confirm' => const PixelBidConfirmScreen(),
-      '/auction-success' => const PixelAuctionResultScreen(kind: PixelAuctionResultKind.success),
-      '/auction-won' => const PixelAuctionResultScreen(kind: PixelAuctionResultKind.won),
-      '/auction-ended' => const PixelAuctionResultScreen(kind: PixelAuctionResultKind.ended),
+      '/auction-success' => const PixelAuctionStateResultScreen(kind: PixelAuctionStateResultKind.success),
+      '/auction-won' => const PixelAuctionStateResultScreen(kind: PixelAuctionStateResultKind.won),
+      '/auction-ended' => const PixelAuctionStateResultScreen(kind: PixelAuctionStateResultKind.ended),
       '/my-auctions' => const PixelMyAuctionsScreen(),
       '/bid-history' => const PixelMyAuctionsScreen(history: true),
-      '/auction-reminder' => const PixelReminderScreen(),
-      '/guarantee-details' => const PixelGuaranteeScreen(),
+      '/auction-reminder' => const PixelAuctionReminderV2Screen(),
+      '/guarantee-details' => const PixelAuctionGuaranteeV2Screen(),
       '/cart' => const MatchedCartScreen(),
       '/cart-empty' => const MatchedCartScreen(forceEmpty: true),
       '/checkout' => const FixedCheckoutScreen(),
