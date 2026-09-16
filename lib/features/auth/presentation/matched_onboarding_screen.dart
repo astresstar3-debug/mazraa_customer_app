@@ -18,9 +18,9 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
 
   static const pages = <_OnboardingData>[
     _OnboardingData(
-      title: 'تابع طلبك حتى يصل إليك',
-      message: 'توصيل موثوق وتتبع واضح من المزرعة إلى بابك.',
-      kind: _OnboardingKind.tracking,
+      title: 'أهلاً بك في مزرعتي',
+      message: 'كل احتياجات مزرعتك في مكان واحد.',
+      kind: _OnboardingKind.welcome,
     ),
     _OnboardingData(
       title: 'شارك في المزادات بثقة',
@@ -28,9 +28,9 @@ class _MatchedOnboardingScreenState extends State<MatchedOnboardingScreen> {
       kind: _OnboardingKind.auction,
     ),
     _OnboardingData(
-      title: 'أهلاً بك في مزرعتي',
-      message: 'كل احتياجات مزرعتك في مكان واحد.',
-      kind: _OnboardingKind.welcome,
+      title: 'تابع طلبك حتى يصل إليك',
+      message: 'توصيل موثوق وتتبع واضح من المزرعة إلى بابك.',
+      kind: _OnboardingKind.tracking,
     ),
   ];
 
