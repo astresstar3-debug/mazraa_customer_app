@@ -6,9 +6,6 @@ import '../../../shared/widgets/mazraa_widgets.dart';
 import '../domain/marketplace_models.dart';
 import 'connected_product_reviews_screen.dart';
 
-const bool _referenceVisual =
-    bool.fromEnvironment('REFERENCE_VISUAL_TEST', defaultValue: false);
-
 class UnifiedProductDetailsScreen extends StatefulWidget {
   const UnifiedProductDetailsScreen({super.key, required this.product});
 
@@ -24,7 +21,7 @@ class _UnifiedProductDetailsScreenState
   int quantity = 1;
   int imageIndex = 0;
   int tabIndex = 0;
-  int selectedOption = 1;
+  int selectedOption = 0;
   bool adding = false;
   bool extrasRequested = false;
   List<Map<String, dynamic>> specs = const [];
@@ -58,7 +55,9 @@ class _UnifiedProductDetailsScreenState
         }
       }
 
-      final known = <String, Product>{for (final item in app.products) item.id: item};
+      final known = <String, Product>{
+        for (final item in app.products) item.id: item,
+      };
       final nextRelated = <Product>[];
       if (values[1] is List) {
         for (final value in values[1] as List) {
@@ -76,9 +75,11 @@ class _UnifiedProductDetailsScreenState
       setState(() {
         specs = nextSpecs;
         related = nextRelated;
+        selectedOption = 0;
       });
     } catch (_) {
-      // Extra product data is optional; the core product screen stays usable.
+      // Specs and related products are optional. The unified details screen
+      // remains usable with the core product payload returned by the server.
     }
   }
 
@@ -103,7 +104,9 @@ class _UnifiedProductDetailsScreenState
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(app.errorMessage ?? 'تعذر إضافة المنتج إلى السلة')),
+        SnackBar(
+          content: Text(app.errorMessage ?? 'تعذر إضافة المنتج إلى السلة'),
+        ),
       );
     } finally {
       if (mounted) setState(() => adding = false);
@@ -117,15 +120,23 @@ class _UnifiedProductDetailsScreenState
       return;
     }
     await app.toggleFavorite(widget.product.id);
+    if (mounted) setState(() {});
+  }
+
+  void _shareProduct() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('مشاركة ${widget.product.name}')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final product = widget.product;
     final app = AppScope.of(context);
+    final product = widget.product;
     final gallery = _gallery(product);
-    final safeImageIndex = imageIndex.clamp(0, gallery.length - 1);
     final options = _productOptions();
+    final safeImageIndex = imageIndex.clamp(0, gallery.length - 1);
+    final safeOptionIndex = selectedOption.clamp(0, options.length - 1);
     final similar = related.isNotEmpty
         ? related.take(3).toList()
         : app.products
@@ -139,87 +150,76 @@ class _UnifiedProductDetailsScreenState
         bottom: false,
         child: Column(
           children: [
-            _ReferenceProductTopBar(
+            _ProductHeader(
               favorite: app.isFavorite(product.id),
-              onFavorite: _toggleFavorite,
               onBack: () => Navigator.maybePop(context),
+              onFavorite: _toggleFavorite,
+              onShare: _shareProduct,
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 16, 18),
+                padding: const EdgeInsetsDirectional.fromSTEB(17, 3, 17, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _HeroGallery(
+                    _ProductHero(
                       product: product,
-                      images: gallery,
-                      selectedIndex: safeImageIndex,
+                      image: gallery[safeImageIndex],
                       favorite: app.isFavorite(product.id),
                       onFavorite: _toggleFavorite,
                     ),
-                    const SizedBox(height: 9),
-                    _ThumbnailRow(
+                    const SizedBox(height: 11),
+                    _Thumbnails(
                       images: gallery,
-                      selectedIndex: safeImageIndex,
+                      selected: safeImageIndex,
                       onSelected: (index) => setState(() => imageIndex = index),
                     ),
-                    const SizedBox(height: 15),
-                    _ProductTitleBlock(product: product),
-                    const SizedBox(height: 16),
-                    const Divider(height: 1, color: AppColors.border),
-                    const SizedBox(height: 11),
-                    const Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(
-                        'عناصر المنتج',
-                        style: TextStyle(
-                          color: AppColors.forestDark,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
+                    const SizedBox(height: 18),
+                    _TitlePriceBlock(product: product),
+                    const SizedBox(height: 18),
+                    const _SectionLabel('عناصر المنتج'),
                     const SizedBox(height: 9),
-                    _OptionSelector(
+                    _OptionsRow(
                       options: options,
-                      selected: selectedOption.clamp(0, options.length - 1),
+                      selected: safeOptionIndex,
                       onSelected: (index) =>
                           setState(() => selectedOption = index),
                     ),
-                    const SizedBox(height: 14),
-                    _BrandCategoryStrip(
+                    const SizedBox(height: 16),
+                    _BrandCategoryRow(
                       brand: _brandName(),
                       category: product.category.trim().isEmpty
-                          ? 'منتجات زراعية'
+                          ? 'منتجات'
                           : product.category,
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     _PurchaseRow(
                       quantity: quantity,
                       enabled: product.inStock && !adding,
                       adding: adding,
                       onIncrement: () => setState(() => quantity++),
-                      onDecrement: () =>
-                          setState(() => quantity = quantity > 1 ? quantity - 1 : 1),
+                      onDecrement: () => setState(
+                        () => quantity = quantity > 1 ? quantity - 1 : 1,
+                      ),
                       onAdd: () => _addToCart(checkout: false),
                       onBuy: () => _addToCart(checkout: true),
                     ),
                     const SizedBox(height: 17),
-                    _ProductTabs(
+                    _Tabs(
                       selected: tabIndex,
-                      onSelected: (value) => setState(() => tabIndex = value),
+                      onSelected: (index) => setState(() => tabIndex = index),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 11),
                     _TabBody(
                       product: product,
                       specs: specs,
                       tabIndex: tabIndex,
                     ),
-                    const SizedBox(height: 15),
-                    _SimilarHeader(
+                    const SizedBox(height: 16),
+                    _SimilarTitle(
                       onAll: () => Navigator.pushNamed(context, '/products'),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 9),
                     _SimilarProducts(products: similar),
                   ],
                 ),
@@ -228,35 +228,38 @@ class _UnifiedProductDetailsScreenState
           ],
         ),
       ),
-      bottomNavigationBar: _ProductBottomNavigation(
-        cartCount: app.cartCount,
-      ),
+      bottomNavigationBar: _BottomNavigation(cartCount: app.cartCount),
     );
   }
 
   List<String> _gallery(Product product) {
-    final raw = product.images.where((value) => value.trim().isNotEmpty).toList();
-    final fallback = product.image.trim().isEmpty
-        ? 'assets/images/home/sidr_honey.png'
-        : product.image;
-    if (raw.isEmpty) raw.add(fallback);
-    while (raw.length < 4) {
-      raw.add(raw[raw.length % raw.length]);
+    final values = product.images
+        .where((value) => value.trim().isNotEmpty)
+        .toList(growable: true);
+    if (values.isEmpty && product.image.trim().isNotEmpty) {
+      values.add(product.image);
     }
-    return raw.take(4).toList();
+    if (values.isEmpty) {
+      values.add('assets/images/home/sidr_honey.png');
+    }
+    final first = values.first;
+    while (values.length < 4) {
+      values.add(first);
+    }
+    return values.take(4).toList(growable: false);
   }
 
   List<String> _productOptions() {
-    if (_referenceVisual) {
-      return const ['250 جرام', '500 جرام', '1 كجم', '2 كجم'];
-    }
-
     final values = <String>[];
     for (final spec in specs) {
-      final name = '${spec['name'] ?? spec['Name'] ?? spec['key'] ?? ''}'.toLowerCase();
+      final name = '${spec['name'] ?? spec['Name'] ?? spec['key'] ?? ''}'
+          .trim()
+          .toLowerCase();
       final isOption = name.contains('وزن') ||
           name.contains('حجم') ||
           name.contains('عبوة') ||
+          name.contains('مقاس') ||
+          name.contains('نوع') ||
           name.contains('weight') ||
           name.contains('size') ||
           name.contains('package') ||
@@ -268,17 +271,19 @@ class _UnifiedProductDetailsScreenState
       if (label.isNotEmpty && !values.contains(label)) values.add(label);
     }
     if (values.isEmpty) return const ['الخيار الأساسي'];
-    return values.take(4).toList();
+    return values.take(4).toList(growable: false);
   }
 
   String _brandName() {
-    if (_referenceVisual) return 'مناحل الوادي';
     for (final spec in specs) {
-      final name = '${spec['name'] ?? spec['Name'] ?? spec['key'] ?? ''}'.toLowerCase();
+      final name = '${spec['name'] ?? spec['Name'] ?? spec['key'] ?? ''}'
+          .trim()
+          .toLowerCase();
       if (!(name.contains('ماركة') ||
           name.contains('علامة') ||
           name.contains('brand') ||
-          name.contains('manufacturer'))) {
+          name.contains('manufacturer') ||
+          name.contains('مصنع'))) {
         continue;
       }
       final value = '${spec['value'] ?? spec['Value'] ?? ''}'.trim();
@@ -288,16 +293,18 @@ class _UnifiedProductDetailsScreenState
   }
 }
 
-class _ReferenceProductTopBar extends StatelessWidget {
-  const _ReferenceProductTopBar({
+class _ProductHeader extends StatelessWidget {
+  const _ProductHeader({
     required this.favorite,
-    required this.onFavorite,
     required this.onBack,
+    required this.onFavorite,
+    required this.onShare,
   });
 
   final bool favorite;
-  final VoidCallback onFavorite;
   final VoidCallback onBack;
+  final VoidCallback onFavorite;
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -305,18 +312,29 @@ class _ReferenceProductTopBar extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            const Center(child: AppLogo(size: 51)),
+            const Center(child: AppLogo(size: 52)),
             Align(
-              alignment: AlignmentDirectional.centerEnd,
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                onPressed: onBack,
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.forestDark,
+                  size: 28,
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    onPressed: () {},
+                    onPressed: onShare,
                     icon: const Icon(
                       Icons.ios_share_rounded,
                       color: AppColors.forestDark,
-                      size: 26,
+                      size: 25,
                     ),
                   ),
                   IconButton(
@@ -328,21 +346,10 @@ class _ReferenceProductTopBar extends StatelessWidget {
                       color: favorite
                           ? AppColors.terracotta
                           : AppColors.forestDark,
-                      size: 28,
+                      size: 27,
                     ),
                   ),
                 ],
-              ),
-            ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: IconButton(
-                onPressed: onBack,
-                icon: const Icon(
-                  Icons.arrow_back_rounded,
-                  color: AppColors.forestDark,
-                  size: 29,
-                ),
               ),
             ),
           ],
@@ -350,18 +357,16 @@ class _ReferenceProductTopBar extends StatelessWidget {
       );
 }
 
-class _HeroGallery extends StatelessWidget {
-  const _HeroGallery({
+class _ProductHero extends StatelessWidget {
+  const _ProductHero({
     required this.product,
-    required this.images,
-    required this.selectedIndex,
+    required this.image,
     required this.favorite,
     required this.onFavorite,
   });
 
   final Product product;
-  final List<String> images;
-  final int selectedIndex;
+  final String image;
   final bool favorite;
   final VoidCallback onFavorite;
 
@@ -369,17 +374,18 @@ class _HeroGallery extends StatelessWidget {
   Widget build(BuildContext context) => AspectRatio(
         aspectRatio: 1.72,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(19),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              AppDataImage(images[selectedIndex], fit: BoxFit.cover),
+              AppDataImage(image, fit: BoxFit.cover),
               if ((product.discount ?? 0) > 0)
                 Positioned(
                   top: 13,
                   left: 13,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
                       color: AppColors.forest,
                       borderRadius: BorderRadius.circular(10),
@@ -396,7 +402,7 @@ class _HeroGallery extends StatelessWidget {
                           'خصم ${product.discount}%',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 12.5,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -408,7 +414,7 @@ class _HeroGallery extends StatelessWidget {
                 top: 13,
                 right: 13,
                 child: Material(
-                  color: Colors.white.withValues(alpha: .94),
+                  color: const Color(0xF5FFFDF8),
                   borderRadius: BorderRadius.circular(11),
                   child: InkWell(
                     onTap: onFavorite,
@@ -433,42 +439,42 @@ class _HeroGallery extends StatelessWidget {
       );
 }
 
-class _ThumbnailRow extends StatelessWidget {
-  const _ThumbnailRow({
+class _Thumbnails extends StatelessWidget {
+  const _Thumbnails({
     required this.images,
-    required this.selectedIndex,
+    required this.selected,
     required this.onSelected,
   });
 
   final List<String> images;
-  final int selectedIndex;
+  final int selected;
   final ValueChanged<int> onSelected;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 58,
+        height: 66,
         child: Row(
           children: [
-            for (var index = 0; index < images.length; index++) ...[
-              if (index > 0) const SizedBox(width: 8),
+            for (var i = 0; i < images.length; i++) ...[
+              if (i > 0) const SizedBox(width: 9),
               Expanded(
                 child: InkWell(
-                  onTap: () => onSelected(index),
+                  onTap: () => onSelected(i),
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
-                    padding: const EdgeInsets.all(1.5),
+                    padding: const EdgeInsets.all(1.3),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: selectedIndex == index
+                        color: i == selected
                             ? AppColors.forest
                             : AppColors.border,
-                        width: selectedIndex == index ? 2 : 1,
+                        width: i == selected ? 2 : 1,
                       ),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: AppDataImage(images[index], fit: BoxFit.cover),
+                      child: AppDataImage(images[i], fit: BoxFit.cover),
                     ),
                   ),
                 ),
@@ -479,15 +485,15 @@ class _ThumbnailRow extends StatelessWidget {
       );
 }
 
-class _ProductTitleBlock extends StatelessWidget {
-  const _ProductTitleBlock({required this.product});
+class _TitlePriceBlock extends StatelessWidget {
+  const _TitlePriceBlock({required this.product});
 
   final Product product;
 
   @override
   Widget build(BuildContext context) {
-    final rating = product.rating <= 0 ? 4.8 : product.rating;
-    final reviews = product.reviews <= 0 ? 126 : product.reviews;
+    final rating = product.rating <= 0 ? 0 : product.rating;
+    final reviews = product.reviews;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -501,35 +507,39 @@ class _ProductTitleBlock extends StatelessWidget {
             height: 1.25,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 7),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              '$rating',
-              style: const TextStyle(
+            if (reviews > 0) ...[
+              const Icon(
+                Icons.rate_review_outlined,
+                size: 15,
                 color: AppColors.forestDark,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
               ),
-            ),
-            const SizedBox(width: 3),
-            const Icon(Icons.star_rounded, color: AppColors.warning, size: 19),
-            const SizedBox(width: 9),
-            Text(
-              '$reviews تقييم',
-              style: const TextStyle(
-                color: AppColors.forestDark,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+              const SizedBox(width: 4),
+              Text(
+                '$reviews تقييم',
+                style: const TextStyle(
+                  color: AppColors.forestDark,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(width: 3),
-            const Icon(
-              Icons.rate_review_outlined,
-              size: 15,
-              color: AppColors.forestDark,
-            ),
+              const SizedBox(width: 10),
+            ],
+            if (rating > 0) ...[
+              Text(
+                rating.toStringAsFixed(1),
+                style: const TextStyle(
+                  color: AppColors.forestDark,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(width: 3),
+              const Icon(Icons.star_rounded, color: AppColors.warning, size: 19),
+            ],
           ],
         ),
         const SizedBox(height: 12),
@@ -543,7 +553,7 @@ class _ProductTitleBlock extends StatelessWidget {
           ),
         ),
         if (product.oldPrice != null) ...[
-          const SizedBox(height: 1),
+          const SizedBox(height: 2),
           Text(
             formatPrice(product.oldPrice!),
             textAlign: TextAlign.right,
@@ -560,8 +570,27 @@ class _ProductTitleBlock extends StatelessWidget {
   }
 }
 
-class _OptionSelector extends StatelessWidget {
-  const _OptionSelector({
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          text,
+          textAlign: TextAlign.right,
+          style: const TextStyle(
+            color: AppColors.forestDark,
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      );
+}
+
+class _OptionsRow extends StatelessWidget {
+  const _OptionsRow({
     required this.options,
     required this.selected,
     required this.onSelected,
@@ -572,58 +601,71 @@ class _OptionSelector extends StatelessWidget {
   final ValueChanged<int> onSelected;
 
   @override
-  Widget build(BuildContext context) => Row(
-        children: [
-          for (var index = 0; index < options.length; index++) ...[
-            if (index > 0) const SizedBox(width: 8),
-            Expanded(
-              child: InkWell(
-                onTap: () => onSelected(index),
-                borderRadius: BorderRadius.circular(13),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  height: 50,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: selected == index
-                        ? AppColors.forestSoft
-                        : AppColors.surface,
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: selected == index
-                          ? AppColors.forest
-                          : AppColors.border,
-                      width: selected == index ? 1.5 : 1,
-                    ),
+  Widget build(BuildContext context) {
+    return Row(
+      textDirection: TextDirection.rtl,
+      children: [
+        for (var i = 0; i < options.length; i++) ...[
+          if (i > 0) const SizedBox(width: 9),
+          Expanded(
+            child: InkWell(
+              onTap: () => onSelected(i),
+              borderRadius: BorderRadius.circular(13),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: i == selected
+                      ? const Color(0xFFF4F6EB)
+                      : AppColors.surface,
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(
+                    color:
+                        i == selected ? AppColors.forest : AppColors.border,
+                    width: i == selected ? 1.6 : 1,
                   ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x090D4328),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: Text(
-                    options[index],
+                    options[i],
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.forestDark,
-                      fontWeight: selected == index
-                          ? FontWeight.w900
-                          : FontWeight.w700,
                       fontSize: 12,
+                      fontWeight:
+                          i == selected ? FontWeight.w900 : FontWeight.w700,
                     ),
                   ),
                 ),
               ),
             ),
-          ],
+          ),
         ],
-      );
+      ],
+    );
+  }
 }
 
-class _BrandCategoryStrip extends StatelessWidget {
-  const _BrandCategoryStrip({required this.brand, required this.category});
+class _BrandCategoryRow extends StatelessWidget {
+  const _BrandCategoryRow({required this.brand, required this.category});
 
   final String brand;
   final String category;
 
   @override
   Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 5),
         decoration: const BoxDecoration(
           border: Border(
             top: BorderSide(color: AppColors.border),
@@ -635,7 +677,7 @@ class _BrandCategoryStrip extends StatelessWidget {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   children: [
                     const Text(
@@ -646,7 +688,7 @@ class _BrandCategoryStrip extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const AppLogo(size: 27),
+                        const AppLogo(size: 26),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
@@ -666,10 +708,10 @@ class _BrandCategoryStrip extends StatelessWidget {
                 ),
               ),
             ),
-            Container(width: 1, height: 52, color: AppColors.border),
+            Container(width: 1, height: 48, color: AppColors.border),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 11),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   children: [
                     const Text(
@@ -682,8 +724,8 @@ class _BrandCategoryStrip extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.local_florist_rounded,
-                          size: 18,
                           color: AppColors.forest,
+                          size: 18,
                         ),
                         const SizedBox(width: 6),
                         Flexible(
@@ -733,17 +775,17 @@ class _PurchaseRow extends StatelessWidget {
         textDirection: TextDirection.rtl,
         children: [
           Expanded(
-            flex: 31,
+            flex: 30,
             child: SizedBox(
               height: 52,
               child: FilledButton.icon(
+                onPressed: enabled ? onBuy : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.forestDark,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: enabled ? onBuy : null,
                 icon: const Icon(Icons.bolt_rounded, size: 19),
                 label: const Text(
                   'اشترِ الآن',
@@ -759,17 +801,17 @@ class _PurchaseRow extends StatelessWidget {
             child: SizedBox(
               height: 52,
               child: FilledButton.icon(
+                onPressed: enabled ? onAdd : null,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.terracotta,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: enabled ? onAdd : null,
                 icon: adding
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 17,
+                        height: 17,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
@@ -797,19 +839,7 @@ class _PurchaseRow extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  InkWell(
-                    onTap: onDecrement,
-                    borderRadius: BorderRadius.circular(18),
-                    child: const CircleAvatar(
-                      radius: 14,
-                      backgroundColor: AppColors.ivory,
-                      child: Icon(
-                        Icons.remove_rounded,
-                        size: 17,
-                        color: AppColors.forestDark,
-                      ),
-                    ),
-                  ),
+                  _QuantityButton(icon: Icons.remove_rounded, onTap: onDecrement),
                   Text(
                     '$quantity',
                     style: const TextStyle(
@@ -818,19 +848,7 @@ class _PurchaseRow extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                  InkWell(
-                    onTap: onIncrement,
-                    borderRadius: BorderRadius.circular(18),
-                    child: const CircleAvatar(
-                      radius: 14,
-                      backgroundColor: AppColors.ivory,
-                      child: Icon(
-                        Icons.add_rounded,
-                        size: 17,
-                        color: AppColors.forestDark,
-                      ),
-                    ),
-                  ),
+                  _QuantityButton(icon: Icons.add_rounded, onTap: onIncrement),
                 ],
               ),
             ),
@@ -839,8 +857,25 @@ class _PurchaseRow extends StatelessWidget {
       );
 }
 
-class _ProductTabs extends StatelessWidget {
-  const _ProductTabs({required this.selected, required this.onSelected});
+class _QuantityButton extends StatelessWidget {
+  const _QuantityButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: CircleAvatar(
+          radius: 14,
+          backgroundColor: AppColors.ivory,
+          child: Icon(icon, size: 17, color: AppColors.forestDark),
+        ),
+      );
+}
+
+class _Tabs extends StatelessWidget {
+  const _Tabs({required this.selected, required this.onSelected});
 
   final int selected;
   final ValueChanged<int> onSelected;
@@ -855,17 +890,17 @@ class _ProductTabs extends StatelessWidget {
       child: Row(
         textDirection: TextDirection.rtl,
         children: [
-          for (var index = 0; index < labels.length; index++)
+          for (var i = 0; i < labels.length; i++)
             Expanded(
               child: InkWell(
-                onTap: () => onSelected(index),
+                onTap: () => onSelected(i),
                 child: Container(
                   height: 43,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     border: Border(
                       bottom: BorderSide(
-                        color: selected == index
+                        color: i == selected
                             ? AppColors.forestDark
                             : Colors.transparent,
                         width: 2.5,
@@ -873,15 +908,14 @@ class _ProductTabs extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    labels[index],
+                    labels[i],
                     style: TextStyle(
-                      color: selected == index
+                      color: i == selected
                           ? AppColors.forestDark
                           : AppColors.muted,
                       fontSize: 12,
-                      fontWeight: selected == index
-                          ? FontWeight.w900
-                          : FontWeight.w700,
+                      fontWeight:
+                          i == selected ? FontWeight.w900 : FontWeight.w700,
                     ),
                   ),
                 ),
@@ -906,11 +940,9 @@ class _TabBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tabIndex == 1) {
-      return _SpecsBody(specs: specs);
-    }
+    if (tabIndex == 1) return _SpecsBody(specs: specs);
     if (tabIndex == 2) {
-      return _ActionTabCard(
+      return _ActionCard(
         icon: Icons.help_outline_rounded,
         text: 'الأسئلة الشائعة وأسئلة العملاء حول المنتج',
         button: 'عرض الأسئلة',
@@ -923,9 +955,11 @@ class _TabBody extends StatelessWidget {
       );
     }
     if (tabIndex == 3) {
-      return _ActionTabCard(
+      return _ActionCard(
         icon: Icons.star_outline_rounded,
-        text: '${product.reviews <= 0 ? 126 : product.reviews} تقييم لهذا المنتج',
+        text: product.reviews > 0
+            ? '${product.reviews} تقييم لهذا المنتج'
+            : 'لا توجد تقييمات لهذا المنتج حتى الآن',
         button: 'عرض التقييمات',
         onPressed: () => Navigator.push(
           context,
@@ -937,10 +971,10 @@ class _TabBody extends StatelessWidget {
     }
 
     final description = product.description.trim().isEmpty
-        ? 'منتج مختار بعناية وجودة عالية، مع تفاصيل واضحة وخيارات مناسبة للشراء.'
+        ? 'لا يوجد وصف إضافي لهذا المنتج حاليًا.'
         : product.description;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(11),
@@ -961,13 +995,12 @@ class _TabBody extends StatelessWidget {
 
 class _SpecsBody extends StatelessWidget {
   const _SpecsBody({required this.specs});
-
   final List<Map<String, dynamic>> specs;
 
   @override
   Widget build(BuildContext context) {
     if (specs.isEmpty) {
-      return const _ActionTabCard(
+      return const _ActionCard(
         icon: Icons.fact_check_outlined,
         text: 'لا توجد مواصفات إضافية لهذا المنتج حاليًا.',
       );
@@ -980,23 +1013,23 @@ class _SpecsBody extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        children: specs.take(5).map((spec) {
-          final name = '${spec['name'] ?? spec['Name'] ?? ''}';
+        children: specs.take(8).map((spec) {
+          final name = '${spec['name'] ?? spec['Name'] ?? spec['key'] ?? ''}';
           final value = '${spec['value'] ?? spec['Value'] ?? ''}';
           final unit = '${spec['unit'] ?? spec['Unit'] ?? ''}';
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
+            padding: const EdgeInsets.symmetric(vertical: 7),
             child: Row(
+              textDirection: TextDirection.rtl,
               children: [
                 Expanded(
                   child: Text(
                     name,
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 11,
-                    ),
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(color: AppColors.muted, fontSize: 11),
                   ),
                 ),
+                const SizedBox(width: 12),
                 Text(
                   '$value${unit.trim().isEmpty ? '' : ' $unit'}',
                   style: const TextStyle(
@@ -1014,8 +1047,8 @@ class _SpecsBody extends StatelessWidget {
   }
 }
 
-class _ActionTabCard extends StatelessWidget {
-  const _ActionTabCard({
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
     required this.icon,
     required this.text,
     this.button,
@@ -1036,12 +1069,14 @@ class _ActionTabCard extends StatelessWidget {
           border: Border.all(color: AppColors.border),
         ),
         child: Row(
+          textDirection: TextDirection.rtl,
           children: [
             Icon(icon, color: AppColors.forestDark, size: 21),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 text,
+                textAlign: TextAlign.right,
                 style: const TextStyle(color: AppColors.muted, fontSize: 11),
               ),
             ),
@@ -1052,13 +1087,13 @@ class _ActionTabCard extends StatelessWidget {
       );
 }
 
-class _SimilarHeader extends StatelessWidget {
-  const _SimilarHeader({required this.onAll});
-
+class _SimilarTitle extends StatelessWidget {
+  const _SimilarTitle({required this.onAll});
   final VoidCallback onAll;
 
   @override
   Widget build(BuildContext context) => Row(
+        textDirection: TextDirection.rtl,
         children: [
           const Icon(
             Icons.local_florist_rounded,
@@ -1086,17 +1121,17 @@ class _SimilarHeader extends StatelessWidget {
 
 class _SimilarProducts extends StatelessWidget {
   const _SimilarProducts({required this.products});
-
   final List<Product> products;
 
   @override
   Widget build(BuildContext context) {
     if (products.isEmpty) return const SizedBox.shrink();
     return Row(
+      textDirection: TextDirection.rtl,
       children: [
-        for (var index = 0; index < products.length; index++) ...[
-          if (index > 0) const SizedBox(width: 8),
-          Expanded(child: _SimilarProductCard(product: products[index])),
+        for (var i = 0; i < products.length; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(child: _SimilarProductCard(product: products[i])),
         ],
       ],
     );
@@ -1105,7 +1140,6 @@ class _SimilarProducts extends StatelessWidget {
 
 class _SimilarProductCard extends StatelessWidget {
   const _SimilarProductCard({required this.product});
-
   final Product product;
 
   @override
@@ -1128,7 +1162,7 @@ class _SimilarProductCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AspectRatio(
-                aspectRatio: 1.48,
+                aspectRatio: 1.46,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -1183,9 +1217,8 @@ class _SimilarProductCard extends StatelessWidget {
       );
 }
 
-class _ProductBottomNavigation extends StatelessWidget {
-  const _ProductBottomNavigation({required this.cartCount});
-
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation({required this.cartCount});
   final int cartCount;
 
   @override
@@ -1205,26 +1238,30 @@ class _ProductBottomNavigation extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 65,
+          height: 66,
           child: Row(
             textDirection: TextDirection.rtl,
             children: [
-              for (var index = 0; index < items.length; index++)
+              for (var i = 0; i < items.length; i++)
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      final route = items[index].route;
+                      final route = items[i].route;
                       if (route == '/') {
-                        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/',
+                          (route) => false,
+                        );
                       } else {
                         Navigator.pushNamed(context, route);
                       }
                     },
-                    child: _BottomNavItem(
-                      icon: items[index].icon,
-                      label: items[index].label,
-                      selected: index == 0,
-                      badge: items[index].badge,
+                    child: _NavItem(
+                      icon: items[i].icon,
+                      label: items[i].label,
+                      selected: i == 0,
+                      badge: items[i].badge,
                     ),
                   ),
                 ),
@@ -1236,8 +1273,8 @@ class _ProductBottomNavigation extends StatelessWidget {
   }
 }
 
-class _BottomNavItem extends StatelessWidget {
-  const _BottomNavItem({
+class _NavItem extends StatelessWidget {
+  const _NavItem({
     required this.icon,
     required this.label,
     required this.selected,
@@ -1267,8 +1304,10 @@ class _BottomNavItem extends StatelessWidget {
                   top: -5,
                   right: -11,
                   child: Container(
-                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    constraints:
+                        const BoxConstraints(minWidth: 18, minHeight: 18),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     decoration: const BoxDecoration(
                       color: AppColors.terracotta,
                       shape: BoxShape.circle,
