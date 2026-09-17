@@ -7,7 +7,7 @@ screenshot_exit=0
 flutter drive --no-dds \
   --dart-define=REFERENCE_VISUAL_TEST=true \
   --driver=test_driver/integration_test.dart \
-  --target=integration_test/app_screenshots_test.dart \
+  --target=integration_test/product_details_screenshot_test.dart \
   -d emulator-5554 || screenshot_exit=$?
 
 echo "Installing the standalone APK built from lib/main.dart..."
