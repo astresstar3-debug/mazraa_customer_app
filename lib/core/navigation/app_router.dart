@@ -29,12 +29,12 @@ import '../../features/cart/presentation/fixed_checkout_screen.dart';
 import '../../features/cart/presentation/matched_cart_screens.dart';
 import '../../features/cart/presentation/matched_delivery_payment_screens.dart';
 import '../../features/cart/presentation/pixel_checkout_result_screens.dart';
+import '../../features/marketplace/domain/marketplace_models.dart';
 import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
-import '../../features/marketplace/presentation/matched_product_screens.dart';
-import '../../features/marketplace/presentation/pixel_medicine_screen.dart';
 import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
 import '../../features/marketplace/presentation/reference_nav_wrappers.dart';
 import '../../features/marketplace/presentation/reference_product_screens.dart';
+import '../../features/marketplace/presentation/unified_product_details_screen.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../state/app_controller.dart';
@@ -64,9 +64,11 @@ abstract final class AppRouter {
       '/offers' => const ReferenceOffersScreen(),
       '/product-filter' => const MatchedProductFilterScreen(),
       '/coupon' => const ConnectedCouponsScreen(),
-      '/product-details' => const MatchedFirstProductScreen(),
-      '/product-medicine' => const PixelMedicineProductScreen(),
-      '/product-feed' => const MatchedFeedProductScreen(),
+      '/product-details' => const _UnifiedProductRoute(),
+      '/product-medicine' =>
+        const _UnifiedProductRoute(preferredKind: ProductKind.medicine),
+      '/product-feed' =>
+        const _UnifiedProductRoute(preferredKind: ProductKind.feed),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
       '/favorites' => const FinalFavoritesScreen(),
@@ -138,7 +140,8 @@ abstract final class AppRouter {
       '/order-cancelled' => const PixelOrderCancelledScreen(),
       '/rate-order' => const _FirstOrderActionRoute(action: _OrderAction.rate),
       '/returns' => const MatchedReturnsScreen(),
-      '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
+      '/return-request' =>
+        const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
       '/return-success' => const PixelReturnSuccessScreen(),
       '/refund-status' => const MatchedRefundStatusScreen(),
       '/invoice' => const _FirstInvoiceRoute(),
@@ -151,6 +154,37 @@ abstract final class AppRouter {
       _ => const MainShell(),
     };
     return MaterialPageRoute(settings: settings, builder: (_) => page);
+  }
+}
+
+class _UnifiedProductRoute extends StatelessWidget {
+  const _UnifiedProductRoute({this.preferredKind});
+
+  final ProductKind? preferredKind;
+
+  @override
+  Widget build(BuildContext context) {
+    final products = AppScope.of(context).products;
+    if (products.isEmpty) {
+      return const Scaffold(
+        body: ResultStateView(
+          title: 'لا توجد منتجات',
+          message: 'لم يعرض الخادم منتجات متاحة حاليًا.',
+          kind: ResultKind.empty,
+        ),
+      );
+    }
+
+    var product = products.first;
+    if (preferredKind != null) {
+      for (final item in products) {
+        if (item.kind == preferredKind) {
+          product = item;
+          break;
+        }
+      }
+    }
+    return UnifiedProductDetailsScreen(product: product);
   }
 }
 
