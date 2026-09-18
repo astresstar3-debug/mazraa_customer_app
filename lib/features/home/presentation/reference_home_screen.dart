@@ -857,7 +857,6 @@ class _AllProductsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      key: key,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ProductSectionHeader(
