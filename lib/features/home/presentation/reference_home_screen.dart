@@ -144,13 +144,14 @@ class _TopBar extends StatelessWidget {
             children: [
               const Center(child: AppLogo(size: 49)),
               Align(
-                alignment: AlignmentDirectional.centerStart,
+                alignment: Alignment.centerLeft,
                 child: InkWell(
                   onTap: () => Navigator.pushNamed(context, '/location'),
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                     child: Row(
+                      textDirection: TextDirection.ltr,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.keyboard_arrow_down_rounded, size: 19),
@@ -174,7 +175,7 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
               Align(
-                alignment: AlignmentDirectional.centerEnd,
+                alignment: Alignment.centerRight,
                 child: IconButton(
                   onPressed: () => Navigator.pushNamed(context, '/notifications'),
                   icon: Badge(
@@ -215,12 +216,14 @@ class _SearchBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(17),
             ),
             child: const Row(
+              textDirection: TextDirection.ltr,
               children: [
                 Icon(Icons.search_rounded, color: AppColors.muted, size: 25),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'ابحث عن منتجات، حيوانات، مزادات وأكثر...',
+                    textDirection: TextDirection.rtl,
                     textAlign: TextAlign.right,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -502,8 +505,9 @@ class _AuctionMiniCard extends StatelessWidget {
 }
 
 class _CouponStrip extends StatelessWidget {
-  const _CouponStrip({required this.coupon});
+  const _CouponStrip({required this.coupon, this.onAll});
   final Coupon coupon;
+  final VoidCallback? onAll;
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -524,24 +528,69 @@ class _CouponStrip extends StatelessWidget {
             ),
           ),
           child: Row(
+            textDirection: TextDirection.ltr,
             children: [
-              const SizedBox(width: 13),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF8EC),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 94,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.copy_rounded, size: 14, color: AppColors.terracotta),
-                    const SizedBox(width: 5),
-                    Text(coupon.code,
-                        style: const TextStyle(color: AppColors.terracotta, fontWeight: FontWeight.w900)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8EC),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.copy_rounded,
+                            size: 13,
+                            color: AppColors.terracotta,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              coupon.code,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.terracotta,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (onAll != null)
+                      InkWell(
+                        key: const ValueKey('home-coupons-view-all'),
+                        onTap: onAll,
+                        borderRadius: BorderRadius.circular(10),
+                        child: const Padding(
+                          padding: EdgeInsets.fromLTRB(5, 3, 5, 1),
+                          child: Text(
+                            'عرض الكل ←',
+                            textDirection: TextDirection.rtl,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -573,36 +622,8 @@ class _CouponSection extends StatelessWidget {
   final VoidCallback onAll;
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.local_activity_outlined,
-                color: AppColors.forestDark,
-                size: 20,
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                'الكوبونات',
-                style: TextStyle(
-                  color: AppColors.forestDark,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const Spacer(),
-              TextButton(
-                key: const ValueKey('home-coupons-view-all'),
-                onPressed: onAll,
-                child: const Text('عرض الكل ←'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 3),
-          _CouponStrip(coupon: coupon),
-        ],
-      );
+  Widget build(BuildContext context) =>
+      _CouponStrip(coupon: coupon, onAll: onAll);
 }
 
 class _MiniProductSection extends StatelessWidget {
