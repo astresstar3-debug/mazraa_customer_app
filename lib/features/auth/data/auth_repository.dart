@@ -57,7 +57,7 @@ class AuthRepository {
         'refreshToken': stored.refreshToken,
         'deviceName': 'mazraa_customer_app',
       }));
-      return _apply(response);
+      return await _apply(response);
     } catch (_) {
       client.accessToken = null;
       client.refreshToken = null;

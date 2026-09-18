@@ -5,124 +5,162 @@ import '../../features/account/presentation/connected_account_data_screens.dart'
 import '../../features/account/presentation/connected_account_screen.dart';
 import '../../features/account/presentation/connected_customer_service_screens.dart';
 import '../../features/account/presentation/connected_delete_account_screen.dart';
+import '../../features/account/presentation/connected_responsive_wallet_screen.dart';
 import '../../features/account/presentation/connected_server_account_extras.dart';
-import '../../features/account/presentation/connected_support_chat_screen.dart';
-import '../../features/auctions/presentation/connected_auction_screens.dart';
-import '../../features/auctions/presentation/connected_my_auctions_screen.dart';
+import '../../features/account/presentation/matched_account_extras.dart';
+import '../../features/account/presentation/matched_account_screen.dart';
+import '../../features/account/presentation/matched_order_return_screens.dart';
+import '../../features/account/presentation/pixel_account_state_screens.dart';
+import '../../features/account/presentation/pixel_orders_screen.dart';
+import '../../features/auctions/presentation/pixel_auction_reference_variants.dart';
+import '../../features/auctions/presentation/pixel_auction_screens.dart';
+import '../../features/auctions/presentation/pixel_auction_state_screens.dart';
 import '../../features/auth/presentation/auth_screens.dart';
 import '../../features/auth/presentation/connected_auth_screens.dart';
 import '../../features/auth/presentation/connected_phone_verification_screen.dart';
 import '../../features/auth/presentation/connected_recovery_screens.dart';
+import '../../features/auth/presentation/matched_auth_location_screens.dart';
+import '../../features/auth/presentation/matched_onboarding_screen.dart';
+import '../../features/auth/presentation/reference_phone_verification_screen.dart';
+import '../../features/cart/presentation/cart_screens.dart';
 import '../../features/cart/presentation/connected_cart_screens.dart';
 import '../../features/cart/presentation/connected_coupons_screen.dart';
-import '../../features/cart/presentation/connected_enhanced_checkout_screen.dart';
-import '../../features/marketplace/presentation/connected_marketplace_screens.dart';
-import '../../features/marketplace/presentation/connected_product_reviews_screen.dart';
-import '../../features/marketplace/presentation/marketplace_screens.dart';
+import '../../features/cart/presentation/fixed_checkout_screen.dart';
+import '../../features/cart/presentation/matched_cart_screens.dart';
+import '../../features/cart/presentation/matched_delivery_payment_screens.dart';
+import '../../features/cart/presentation/pixel_checkout_result_screens.dart';
+import '../../features/marketplace/domain/marketplace_models.dart';
+import '../../features/marketplace/presentation/matched_marketplace_screens.dart';
+import '../../features/marketplace/presentation/reference_marketplace_screens.dart';
+import '../../features/marketplace/presentation/reference_nav_wrappers.dart';
+import '../../features/marketplace/presentation/reference_product_screens.dart';
+import '../../features/marketplace/presentation/unified_product_details_screen.dart';
 import '../../features/shell/main_shell.dart';
 import '../../shared/widgets/mazraa_widgets.dart';
 import '../state/app_controller.dart';
+
+const bool _referenceVisual = bool.fromEnvironment('REFERENCE_VISUAL_TEST');
 
 abstract final class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = switch (settings.name) {
       '/' => const MainShell(),
-      '/onboarding' => const OnboardingScreen(),
+      '/onboarding' => const MatchedOnboardingScreen(),
       '/login' => const ConnectedLoginScreen(),
       '/register' => const ConnectedRegisterScreen(),
       '/forgot-password' => const ConnectedForgotPasswordScreen(),
       '/reset-password' => const ConnectedResetPasswordScreen(),
-      '/otp' => const ConnectedPhoneVerificationScreen(),
-      '/location-permission' => const ConnectedAddressesScreen(),
-      '/location' => const ConnectedAddressesScreen(),
-      '/categories' => const ConnectedCategoriesScreen(),
-      '/search' => const ConnectedSearchScreen(),
-      '/products' => const ConnectedProductListScreen(),
-      '/offers' => const ConnectedProductListScreen(title: 'العروض', onlyOffers: true),
+      '/otp' => _referenceVisual
+          ? const ReferencePhoneVerificationScreen()
+          : const ConnectedPhoneVerificationScreen(),
+      '/location-permission' => const MatchedLocationPermissionScreen(),
+      '/location' => const MatchedLocationPickerScreen(),
+      '/categories' => const FinalCategoriesScreen(),
+      '/search' => const FinalSearchScreen(),
+      '/search-results' => const ReferenceSearchResultsScreen(),
+      '/search-empty' => const MatchedEmptySearchScreen(),
+      '/products' => const ReferenceProductListScreen(),
+      '/product-list-view' => const ReferenceProductListScreen(forceList: true),
+      '/offers' => const ReferenceOffersScreen(),
+      '/product-filter' => const MatchedProductFilterScreen(),
       '/coupon' => const ConnectedCouponsScreen(),
-      '/product-details' => const _FirstProductScreen(),
-      '/product-medicine' => const _FirstProductScreen(index: 7),
-      '/product-feed' => const _FirstProductScreen(index: 3),
+      '/product-details' => const _UnifiedProductRoute(),
+      '/product-medicine' =>
+        const _UnifiedProductRoute(preferredKind: ProductKind.medicine),
+      '/product-feed' =>
+        const _UnifiedProductRoute(preferredKind: ProductKind.feed),
       '/reviews' => const _ReviewRoute(),
       '/ask-question' => const _AskRoute(),
-      '/favorites' => const FavoritesScreen(),
-      '/favorites-empty' => const FavoritesScreen(empty: true),
-      '/auctions' => const ConnectedAuctionListScreen(),
-      '/auction-details' => const _FirstAuctionScreen(),
-      '/auction-gallery' => const _FirstAuctionScreen(index: 2),
-      '/auction-bid' => const _BidRoute(),
-      '/auction-success' => const _FirstAuctionScreen(),
-      '/auction-won' => const ConnectedMyAuctionsScreen(),
-      '/auction-ended' => const ConnectedMyAuctionsScreen(),
-      '/my-auctions' => const ConnectedMyAuctionsScreen(),
-      '/bid-history' => const ConnectedMyAuctionsScreen(historyOnly: true),
-      '/auction-reminder' => const _ServerFeatureUnavailableScreen(
-        title: 'تذكير المزاد',
-        message: 'لا يوجد في نسخة السيرفر الحالية endpoint لحفظ تذكيرات المزادات، لذلك لن يعرض التطبيق نجاحًا محليًا وهميًا.',
-      ),
-      '/guarantee-details' => const _ServerFeatureUnavailableScreen(
-        title: 'ضمان المزاد',
-        message: 'لا يوجد في نسخة السيرفر الحالية endpoint مستقل لضمان المزاد. لن يعرض التطبيق مبلغ ضمان تجريبيًا.',
-      ),
-      '/cart' => const ConnectedCartScreen(),
-      '/cart-empty' => const ConnectedCartScreen(forceEmpty: true),
-      '/checkout' => const ConnectedEnhancedCheckoutScreen(),
-      '/delivery-slot' => const ConnectedEnhancedCheckoutScreen(),
-      '/delivery-preferences' => const ConnectedEnhancedCheckoutScreen(),
-      '/payment-methods' => const ConnectedPaymentMethodsScreen(),
-      '/add-card' => const ConnectedPaymentMethodsScreen(),
-      '/edit-payment' => const ConnectedPaymentMethodsScreen(),
-      '/cash-on-delivery' => const ConnectedPaymentMethodsScreen(),
-      '/bank-transfer' => const ConnectedPaymentMethodsScreen(),
-      '/order-success' => const ConnectedOrdersScreen(),
-      '/payment-success' => const ConnectedOrdersScreen(),
-      '/payment-failed' => const ConnectedEnhancedCheckoutScreen(),
-      '/wallet-pending' => const ConnectedWalletScreen(),
-      '/account' => const ConnectedAccountScreen(),
-      '/edit-profile' => const ConnectedEditProfileScreen(),
+      '/favorites' => const FinalFavoritesScreen(),
+      '/favorites-empty' => const FinalFavoritesScreen(empty: true),
+      '/favorites-plant-empty' => const FinalFavoritesScreen(plantEmpty: true),
+      '/auctions' => const PixelAuctionListScreen(),
+      '/auction-filter' => const PixelAuctionFilterScreen(),
+      '/auction-details' => const PixelAuctionDetailsScreen(),
+      '/auction-details-crop' => _referenceVisual
+          ? const PixelAuctionReferenceVariantScreen(
+              variant: PixelAuctionReferenceVariant.crop,
+            )
+          : const PixelAuctionDetailsScreen(),
+      '/auction-details-equipment' => _referenceVisual
+          ? const PixelAuctionReferenceVariantScreen(
+              variant: PixelAuctionReferenceVariant.equipment,
+            )
+          : const PixelAuctionDetailsScreen(),
+      '/auction-gallery' => const PixelAuctionDetailsScreen(galleryMode: true),
+      '/auction-bid' => const PixelBidScreen(),
+      '/auction-bid-confirm' => const PixelBidConfirmScreen(),
+      '/auction-settlement' => const PixelAuctionSettlementScreen(),
+      '/auction-success' => const PixelAuctionStateResultScreen(
+          kind: PixelAuctionStateResultKind.success,
+        ),
+      '/auction-won' => const PixelAuctionStateResultScreen(
+          kind: PixelAuctionStateResultKind.won,
+        ),
+      '/auction-ended' => const PixelAuctionStateResultScreen(
+          kind: PixelAuctionStateResultKind.ended,
+        ),
+      '/my-auctions' => const PixelMyAuctionsScreen(),
+      '/bid-history' => const PixelMyAuctionsScreen(history: true),
+      '/auction-reminder' => const PixelAuctionReminderV2Screen(),
+      '/guarantee-details' => const PixelAuctionGuaranteeV2Screen(),
+      '/cart' => const MatchedCartScreen(),
+      '/cart-empty' => const MatchedCartScreen(forceEmpty: true),
+      '/checkout' => const FixedCheckoutScreen(),
+      '/delivery-slot' => const MatchedDeliverySlotScreen(),
+      '/delivery-preferences' => const MatchedDeliveryPreferencesScreen(),
+      '/payment-methods' => const MatchedPaymentMethodsScreen(),
+      '/add-card' => const MatchedCardFormScreen(),
+      '/edit-payment' => const MatchedCardFormScreen(editing: true),
+      '/cash-on-delivery' => const MatchedCashOnDeliveryScreen(),
+      '/bank-transfer' => const MatchedBankTransferScreen(),
+      '/order-success' => const PixelOrderSuccessScreen(),
+      '/payment-success' => const PixelPaymentResultScreen(success: true),
+      '/payment-failed' => const PixelPaymentResultScreen(success: false),
+      '/wallet-pending' => const PixelWalletPendingScreen(),
+      '/account' => const MatchedAccountScreen(),
+      '/edit-profile' => const MatchedEditProfileScreen(),
       '/profile-avatar' => const ConnectedAvatarScreen(),
-      '/change-phone' => const ConnectedEditProfileScreen(),
-      '/change-password' => const ConnectedChangePasswordScreen(),
+      '/change-phone' => const MatchedChangePhoneScreen(),
+      '/change-password' => const MatchedChangePasswordScreen(),
       '/settings' => const ConnectedSettingsScreen(),
       '/notifications' => const ConnectedNotificationsScreen(),
-      '/notification-preferences' => const ConnectedNotificationPreferencesScreen(),
+      '/notification-preferences' => const MatchedNotificationPreferencesScreen(),
       '/addresses' => const ConnectedAddressesScreen(),
-      '/addresses-empty' => const ConnectedAddressesScreen(),
-      '/add-address' => const ConnectedAddressFormScreen(),
-      '/wallet' => const ConnectedWalletScreen(),
+      '/addresses-empty' => const PixelEmptyAddressesScreen(),
+      '/add-address' => const MatchedAddAddressScreen(),
+      '/wallet' => const ConnectedResponsiveWalletScreen(),
       '/wallet-topup' => const ConnectedWalletTopUpScreen(),
-      '/wallet-topup-success' => const ConnectedWalletScreen(),
+      '/wallet-topup-success' => const PixelWalletTopUpSuccessScreen(),
       '/wallet-transactions' => const ConnectedWalletTransactionsScreen(),
-      '/orders' => const ConnectedOrdersScreen(),
+      '/orders' => const PixelAwareOrdersScreen(),
       '/order-details' => const _FirstOrderActionRoute(action: _OrderAction.details),
       '/track-order' => const _FirstOrderActionRoute(action: _OrderAction.track),
       '/cancel-order' => const _FirstOrderActionRoute(action: _OrderAction.cancel),
-      '/order-cancelled' => const ConnectedOrdersScreen(),
+      '/order-cancelled' => const PixelOrderCancelledScreen(),
       '/rate-order' => const _FirstOrderActionRoute(action: _OrderAction.rate),
-      '/returns' => const ConnectedReturnsScreen(),
-      '/return-request' => const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
-      '/return-success' => const ConnectedReturnsScreen(),
-      '/refund-status' => const ConnectedReturnsScreen(),
+      '/returns' => const MatchedReturnsScreen(),
+      '/return-request' =>
+        const _FirstOrderActionRoute(action: _OrderAction.returnOrder),
+      '/return-success' => const PixelReturnSuccessScreen(),
+      '/refund-status' => const MatchedRefundStatusScreen(),
       '/invoice' => const _FirstInvoiceRoute(),
       '/support' => const ConnectedSupportScreen(),
       '/support-ticket' => const ConnectedSupportTicketScreen(),
-      '/support-chat' => const ConnectedSupportChatScreen(),
-      '/legal' => const ConnectedLegalScreen(),
+      '/support-chat' => const MatchedSupportChatScreen(),
+      '/legal' => const MatchedLegalScreen(),
       '/delete-account' => const ConnectedDeleteAccountScreen(),
-      '/offline' => const GenericActionResultScreen(
-        title: 'لا يوجد اتصال بالإنترنت',
-        message: 'تحقق من اتصالك وحاول مرة أخرى.',
-        kind: ResultKind.offline,
-      ),
+      '/offline' => const PixelOfflineScreen(),
       _ => const MainShell(),
     };
     return MaterialPageRoute(settings: settings, builder: (_) => page);
   }
 }
 
-class _FirstProductScreen extends StatelessWidget {
-  const _FirstProductScreen({this.index = 0});
-  final int index;
+class _UnifiedProductRoute extends StatelessWidget {
+  const _UnifiedProductRoute({this.preferredKind});
+
+  final ProductKind? preferredKind;
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +174,17 @@ class _FirstProductScreen extends StatelessWidget {
         ),
       );
     }
-    final safeIndex = index < 0 ? 0 : (index >= products.length ? products.length - 1 : index);
-    return ConnectedProductDetailsScreen(product: products[safeIndex]);
+
+    var product = products.first;
+    if (preferredKind != null) {
+      for (final item in products) {
+        if (item.kind == preferredKind) {
+          product = item;
+          break;
+        }
+      }
+    }
+    return UnifiedProductDetailsScreen(product: product);
   }
 }
 
@@ -156,7 +203,7 @@ class _ReviewRoute extends StatelessWidget {
         ),
       );
     }
-    return ConnectedProductReviewsScreen(product: products.first);
+    return ReferenceReviewsQuestionsScreen(product: products.first);
   }
 }
 
@@ -175,48 +222,7 @@ class _AskRoute extends StatelessWidget {
         ),
       );
     }
-    return ConnectedProductQuestionsScreen(product: products.first);
-  }
-}
-
-class _FirstAuctionScreen extends StatelessWidget {
-  const _FirstAuctionScreen({this.index = 0});
-  final int index;
-
-  @override
-  Widget build(BuildContext context) {
-    final auctions = AppScope.of(context).auctions;
-    if (auctions.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد مزادات',
-          message: 'لم يعرض الخادم مزادات متاحة حاليًا.',
-          kind: ResultKind.empty,
-        ),
-      );
-    }
-    final safeIndex = index < 0 ? 0 : (index >= auctions.length ? auctions.length - 1 : index);
-    return ConnectedAuctionDetailsScreen(auction: auctions[safeIndex]);
-  }
-}
-
-class _BidRoute extends StatelessWidget {
-  const _BidRoute();
-
-  @override
-  Widget build(BuildContext context) {
-    final app = AppScope.of(context);
-    if (app.auctions.isEmpty) {
-      return const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد مزادات',
-          message: 'لا يوجد مزاد متاح للمزايدة الآن.',
-          kind: ResultKind.empty,
-        ),
-      );
-    }
-    if (!app.isAuthenticated) return const ConnectedLoginScreen();
-    return ConnectedBidScreen(auction: app.auctions.first);
+    return ReferenceAskQuestionScreen(product: products.first);
   }
 }
 
@@ -224,12 +230,21 @@ enum _OrderAction { details, track, cancel, rate, returnOrder }
 
 class _FirstOrderActionRoute extends StatelessWidget {
   const _FirstOrderActionRoute({required this.action});
+
   final _OrderAction action;
 
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
-    if (id == null) return const _NoOrderScreen();
+    if (id == null) {
+      return switch (action) {
+        _OrderAction.details => const MatchedOrderDetailsScreen(),
+        _OrderAction.track => const MatchedTrackOrderScreen(),
+        _OrderAction.cancel => const MatchedCancelOrderScreen(),
+        _OrderAction.rate => const MatchedRateOrderScreen(),
+        _OrderAction.returnOrder => const MatchedReturnRequestScreen(),
+      };
+    }
     return switch (action) {
       _OrderAction.details => ConnectedOrderDetailsScreen(orderId: id),
       _OrderAction.track => ConnectedTrackOrderScreen(orderId: id),
@@ -246,44 +261,16 @@ class _FirstInvoiceRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = _firstOrderId(context);
-    return id == null ? const _NoOrderScreen() : ConnectedInvoiceScreen(orderId: id);
+    return id == null
+        ? const MatchedInvoiceScreen()
+        : ConnectedInvoiceScreen(orderId: id);
   }
 }
 
 int? _firstOrderId(BuildContext context) {
+  if (_referenceVisual) return null;
   final orders = AppScope.of(context).orders;
   if (orders.isEmpty) return null;
   final id = int.tryParse(orders.first.id) ?? 0;
   return id > 0 ? id : null;
-}
-
-class _NoOrderScreen extends StatelessWidget {
-  const _NoOrderScreen();
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: ResultStateView(
-          title: 'لا توجد طلبات',
-          message: 'لا يوجد طلب متاح لهذه العملية.',
-          kind: ResultKind.empty,
-        ),
-      );
-}
-
-class _ServerFeatureUnavailableScreen extends StatelessWidget {
-  const _ServerFeatureUnavailableScreen({required this.title, required this.message});
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: MazraaAppBar(title: title),
-        body: ResultStateView(
-          kind: ResultKind.empty,
-          title: title,
-          message: message,
-          primaryLabel: 'العودة للمزادات',
-          onPrimary: () => Navigator.pushReplacementNamed(context, '/auctions'),
-        ),
-      );
 }

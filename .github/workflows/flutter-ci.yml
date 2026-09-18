@@ -1,0 +1,147 @@
+name: Flutter CI and Android Screenshots
+
+on:
+  pull_request:
+    branches:
+      - new
+  push:
+    branches:
+      - new
+  workflow_dispatch:
+
+concurrency:
+  group: flutter-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-emulator:
+    name: Analyze, run Android emulator, and capture screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter beta
+        uses: subosito/flutter-action@v2
+        with:
+          channel: beta
+          cache: true
+
+      - name: Cache Gradle dependencies
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-home-cache-cleanup: true
+
+      - name: Cache Flutter/Android incremental build state
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            build
+            android/.gradle
+          key: mazraa-flutter-build-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'lib/**/*.dart', 'integration_test/**/*.dart', 'test_driver/**/*.dart', 'android/settings.gradle.kts', 'android/app/build.gradle.kts', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze Dart code
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build standalone installable debug APK
+        run: |
+          flutter build apk --debug --target=lib/main.dart
+          mkdir -p build/installable
+          cp build/app/outputs/flutter-apk/app-debug.apk build/installable/mazraa-app-debug.apk
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Capture home screen screenshots and smoke-test the real app APK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 32
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+          script: bash .github/scripts/emulator_capture.sh
+
+      - name: Ensure standalone APK exists
+        if: always()
+        run: |
+          if [ ! -f build/installable/mazraa-app-debug.apk ]; then
+            flutter build apk --debug --target=lib/main.dart
+            mkdir -p build/installable
+            cp build/app/outputs/flutter-apk/app-debug.apk build/installable/mazraa-app-debug.apk
+          fi
+
+      - name: Package home screen screenshots
+        if: always()
+        run: |
+          if [ -d screenshots ] && find screenshots -type f -name '*.png' -print -quit | grep -q .; then
+            mkdir -p build/artifacts
+            zip -0 -r "build/artifacts/mazraa-home-screenshots-${GITHUB_RUN_ID}.zip" screenshots
+          else
+            echo "No screenshots were produced; skipping screenshot package."
+          fi
+
+      - name: Upload standalone installable debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-installable-debug-apk-${{ github.run_id }}
+          path: build/installable/mazraa-app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload home screen screenshots package
+        id: screenshot_upload
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-home-screenshots-${{ github.run_id }}
+          path: build/artifacts/mazraa-home-screenshots-${{ github.run_id }}.zip
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+
+      - name: Retry screenshot artifact upload
+        if: always() && steps.screenshot_upload.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-home-screenshots-${{ github.run_id }}-retry
+          path: build/artifacts/mazraa-home-screenshots-${{ github.run_id }}.zip
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload all reference designs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-design-references-${{ github.run_id }}
+          path: AppImages/**/*.png
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload integration response
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazraa-integration-output-${{ github.run_id }}
+          path: build/integration_response_data.json
+          if-no-files-found: ignore
+          retention-days: 7
